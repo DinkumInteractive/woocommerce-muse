@@ -92,6 +92,8 @@ class Wc_Muse {
 		 * The class responsible for managing connection to muse.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-core.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-connector.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-orders.php';
 
 		$this->loader = new Wc_Muse_Loader();
 
