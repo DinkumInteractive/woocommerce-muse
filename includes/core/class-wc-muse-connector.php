@@ -72,6 +72,11 @@ class Wc_Muse_Connector {
 
 			case 'post':
 				if ( ! $args ) return false;
+				curl_setopt( $curl, CURLOPT_CONNECTTIMEOUT, 10 );
+				curl_setopt( $curl, CURLOPT_TIMEOUT, 10 );
+				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, false );
 				curl_setopt( $curl, CURLOPT_HTTPHEADER, $args['headers'] );
 				curl_setopt( $curl, CURLOPT_POSTFIELDS, $args['content'] );
 				curl_setopt( $curl, CURLOPT_POST, 1 );

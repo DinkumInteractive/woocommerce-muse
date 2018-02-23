@@ -78,7 +78,7 @@ class Wc_Muse_Orders {
 
 	/**
      * Get orders from WooCommerce
-     * @return void
+     * @return array of WC_Order
      */
 	function get_wc_orders( $limit, $page ){
 
@@ -98,7 +98,7 @@ class Wc_Muse_Orders {
 
 	/**
      * Get allowed orders status to retrieve
-     * @return void
+     * @return array of order status
      */
 	function get_order_status(){
 
@@ -108,7 +108,7 @@ class Wc_Muse_Orders {
 
 	/**
      * Get allowed orders status to retrieve
-     * @return void
+     * @return string
      */
 	function get_orders_to_export( $limit, $page ){
 
@@ -135,7 +135,7 @@ class Wc_Muse_Orders {
      */
 	function convert_wc_order( $wc_order ){
 
-		var_dump($wc_order->get_subtotal());
+		// var_dump($wc_order->get_subtotal());
 
 		$order = array(
 
@@ -163,6 +163,7 @@ class Wc_Muse_Orders {
 				'country_code' => $wc_order->get_shipping_country(),
 				'zip_code' => $wc_order->get_shipping_postcode(),
 			),
+
 			'billing_address' => array(
 				'first_name' => $wc_order->get_billing_first_name(),
 				'last_name' => $wc_order->get_billing_last_name(),
@@ -174,6 +175,7 @@ class Wc_Muse_Orders {
 				'country_code' => $wc_order->get_billing_country(),
 				'zip_code' => $wc_order->get_billing_postcode(),
 			),
+
 			'payment' => array(
 				'last_4' => '', 
 				'card_type' => '',
@@ -186,6 +188,7 @@ class Wc_Muse_Orders {
 				'type' => '',
 				'amount' => '',
 			),
+
 			'totals' => array(
 				'subtotal' => $wc_order->get_subtotal(), 
 				'total' => $wc_order->get_total(),
@@ -194,28 +197,23 @@ class Wc_Muse_Orders {
 				'taxes' =>$wc_order->get_total_tax(),
 				'fees' => '',
 			),
-			'coupons' => array(
-				// 	$coupons
-			),
-			'order_items' => array(
-				// 	$order_items
-			),
-		);
 
-		/*	@TODO: add coupons and items
-		$coupons = array(
-			'name' => '', 
-			'discount_amount' => '',
-		);
+			'coupons' => $this->get_order_coupons( $wc_order ),
+			/*	Fields in array:
+				- name
+				- discount_amount
+			*/
 
-		$order_items = array(
-			'series_slug' => '', 
-			'event_slug' => '',
-			'seat_preference_slug' => '',
-			'ticket_quantity' => '',
-			'ticket_price' => '',
+			'order_items' => $this->get_order_items( $wc_order ),
+			/*	Fields in array:
+				- series_slug
+				- event_slug
+				- seat_preference_slug
+				- ticket_quantity
+				- ticket_price
+			*/
+
 		);
-		 */
 
 		return $order;
 
@@ -236,6 +234,53 @@ class Wc_Muse_Orders {
 		);
 
 		return $profile;
+
+	}
+
+	function get_order_coupons( $wc_order ) {
+
+		$coupons = $wc_order->get_used_coupons();
+
+		$order_coupons = array();
+
+		foreach ($coupons as $i => $code) {
+
+			$coupon = new WC_Coupon($code);
+			
+			$order_coupons[] = array(
+				'name' => $code, 
+				'discount_amount' => $coupon->get_amount(),
+			);
+
+		}
+
+		return $order_coupons;
+
+	}
+
+	function get_order_items( $wc_order ) {
+
+		$items = $wc_order->get_items();
+
+		$order_items = array();
+
+		foreach ($items as $i => $order_item) {
+
+			$product_id = $order_item->get_product_id();
+
+			/*	@TODO: need to check post meta in use for products.
+			 */
+			$order_items[] = array(
+				'series_slug' => get_post_meta( $product_id, 'series_slug', true ),
+				'event_slug' => get_post_meta( $product_id, 'event_slug', true ),
+				'seat_preference_slug' => get_post_meta( $product_id, 'seat_preference_slug', true ),
+				'ticket_quantity' => $order_item->get_quantity(),
+				'ticket_price' => $order_item->get_total(),
+			);
+
+		}
+
+		return $order_items;
 
 	}
 
