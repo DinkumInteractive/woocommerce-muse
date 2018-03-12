@@ -47,6 +47,24 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-section-general-end',
 			),
 
+			'section_sync' => array(
+				'name'     => __( 'Sync Settings', 'wc-muse' ),
+				'type'     => 'title',
+				'id'       => 'wc-muse-section-sync',
+			),
+
+			'enable_cron' => array(
+				'name'     => __( 'Enable Cron', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'wc-muse-enable_cron',
+			),
+
+			'section_sync_end' => array(
+				'type'     => 'sectionend',
+				'id'       => 'wc-muse-section-sync-end',
+			),
+
 		);
 
 	}
