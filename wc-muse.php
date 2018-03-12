@@ -42,8 +42,40 @@ function deactivate_wc_muse() {
 	Wc_Muse_Deactivator::deactivate();
 }
 
+function wc_muse_woocommerce_missing_notice() {
+
+	$class = 'notice notice-error';
+
+	$text = '<strong>'. __( 'Warning', 'wc-muse' ) .'</strong>' . __( ': WooCommerce Muse needs Woocommerce to function properly.', 'wc-muse' );
+
+	$notice = "<div class='$class'><p>$text</p></div>";
+
+	echo $notice;
+
+}
+
+function wc_muse_woocommerce_missing() {
+
+	//	WooCommerce is missing.
+	if ( is_admin() && in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+
+		update_option( 'wc_muse_active', true );
+
+	} else {
+		
+		update_option( 'wc_muse_active', false );
+
+		add_action( 'admin_notices', 'wc_muse_woocommerce_missing_notice' );
+
+	}
+
+}
+
 register_activation_hook( __FILE__, 'activate_wc_muse' );
+
 register_deactivation_hook( __FILE__, 'deactivate_wc_muse' );
+
+add_action( 'admin_init', 'wc_muse_woocommerce_missing' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -58,8 +90,12 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-wc-muse.php';
  */
 function run_wc_muse() {
 
+	if ( ! get_option( 'wc_muse_active' ) ) return false;
+
 	$plugin = new Wc_Muse();
+
 	$plugin->run();
 
 }
+
 run_wc_muse();
