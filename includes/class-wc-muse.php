@@ -134,7 +134,7 @@ class Wc_Muse {
 		$this->loader->add_action( 'woocommerce_update_options_wc_muse_settings', $plugin_admin, 'update_settings' );
 
 		//	WooCommerce Muse
-		$this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );
+		// $this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );
 
 	}
 

@@ -28,6 +28,13 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-section-general',
 			),
 
+			'enable_sync' => array(
+				'name'     => __( 'Enable WC Muse', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'wc-muse-enable_sync',
+			),
+
 			'connection_status' => array(
 				'name'     => __( 'Connection Status', 'wc-muse' ),
 				'type'     => 'text',
