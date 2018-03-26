@@ -268,14 +268,12 @@ class Wc_Muse_Orders {
 
 			$product_id = $order_item->get_product_id();
 
-			/*	@TODO: need to check post meta in use for products.
-			 */
 			$order_items[] = array(
-				'series_slug' => get_post_meta( $product_id, 'series_slug', true ),
-				'event_slug' => get_post_meta( $product_id, 'event_slug', true ),
-				'seat_preference_slug' => get_post_meta( $product_id, 'seat_preference_slug', true ),
-				'ticket_quantity' => $order_item->get_quantity(),
-				'ticket_price' => $order_item->get_total(),
+				'slug' => get_post_meta( $product_id, 'item_slug', true ),
+				'type' => get_post_meta( $product_id, 'ticket_type', true ),
+				'seat_slug' => get_post_meta( $product_id, 'seat_slug', true ),
+				'qty' => $order_item->get_quantity(),
+				'price' => $order_item->get_total(),
 			);
 
 		}

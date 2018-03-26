@@ -136,6 +136,9 @@ class Wc_Muse {
 		//	WooCommerce Muse
 		// $this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );
 
+		// 	Test Page
+		$this->loader->add_action( 'init', $plugin_admin, 'add_test_menu' );
+
 	}
 
 	/**

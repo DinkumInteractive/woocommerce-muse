@@ -84,6 +84,17 @@ add_action( 'admin_init', 'wc_muse_woocommerce_missing' );
 require plugin_dir_path( __FILE__ ) . 'includes/class-wc-muse.php';
 
 /**
+ * Register constants
+ *
+ * @since    1.0.0
+ */
+function wc_muse_define_constants() {
+
+	define( 'WC_MUSE_ADMIN_TEMPLATE_DIR', plugin_dir_path( __FILE__ ) . 'admin/partials/' );
+
+}
+
+/**
  * Begins execution of the plugin.
  *
  * @since    1.0.0
@@ -91,6 +102,8 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-wc-muse.php';
 function run_wc_muse() {
 
 	if ( ! get_option( 'wc_muse_active' ) ) return false;
+
+	wc_muse_define_constants();
 
 	$plugin = new Wc_Muse();
 
