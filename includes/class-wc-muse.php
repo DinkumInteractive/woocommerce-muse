@@ -94,6 +94,7 @@ class Wc_Muse {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-core.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-connector.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-orders.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-muse-products-hooks.php';
 
 		$this->loader = new Wc_Muse_Loader();
 
@@ -132,6 +133,9 @@ class Wc_Muse {
 		$this->loader->add_filter( 'woocommerce_settings_tabs_array', $plugin_admin, 'add_settings_tab', 25 );
 		$this->loader->add_action( 'woocommerce_settings_tabs_wc_muse_settings', $plugin_admin, 'settings_tab' );
 		$this->loader->add_action( 'woocommerce_update_options_wc_muse_settings', $plugin_admin, 'update_settings' );
+
+		// 	woocommerce product hooks
+		$plugin_admin->define_products_hook();
 
 		//	WooCommerce Muse
 		// $this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );

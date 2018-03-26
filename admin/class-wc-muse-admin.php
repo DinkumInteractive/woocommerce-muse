@@ -28,6 +28,16 @@ class Wc_Muse_Admin {
 	private $version;
 
 	/**
+	 * The loader that's responsible for maintaining and registering all hooks that power
+	 * the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      Wc_Muse_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 */
+	protected $loader;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -38,6 +48,7 @@ class Wc_Muse_Admin {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->loader = new Wc_Muse_Loader();
 
 	}
 
@@ -120,6 +131,27 @@ class Wc_Muse_Admin {
 		$position = false;
 
 		add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback, $icon, $position );
+
+	}
+
+	/**
+	 * Manages all product hooks.
+	 *
+	 * @since    1.0.0
+	 */
+	public function define_products_hook() {
+
+		$products_hook = new Wc_Muse_Products_Hook();
+		
+		// 	woocommerce product extra metabox
+		$this->loader->add_filter( 'woocommerce_product_data_tabs', $products_hook, 'add_tab' );
+		$this->loader->add_action( 'woocommerce_product_data_panels', $products_hook, 'add_tab_content' );
+		$this->loader->add_action( 'woocommerce_product_after_variable_attributes', $products_hook, 'add_variation_meta_info', 10, 3 );
+		$this->loader->add_action( 'woocommerce_ajax_save_product_variations', $products_hook, 'save_product_variations_meta', 10, 1 );
+		$this->loader->add_action( 'save_post_product', $products_hook, 'save_post_meta', 0, 3 );
+
+		// 	run all hooks
+		$this->loader->run();
 
 	}
 
