@@ -104,4 +104,34 @@ class Wc_Muse_Admin {
 
 	}
 
+	/**
+	 * Add test main menu.
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_test_menu() {
+
+		$page_title = __( 'WC Muse Test', 'wc-muse' );
+		$menu_title = __( 'WC Muse Test', 'wc-muse' );
+		$capability = 'manage_options';
+		$menu_slug = 'wc-muse-test';
+		$callback = array( $this, 'the_test_template' );
+		$icon = false;
+		$position = false;
+
+		add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback, $icon, $position );
+
+	}
+
+	/**
+	 * Render test page.
+	 *
+	 * @since    1.0.0
+	 */
+	public function the_test_template() {
+
+		include WC_MUSE_ADMIN_TEMPLATE_DIR . 'wc-muse-admin-test.php';
+
+	}
+
 }
