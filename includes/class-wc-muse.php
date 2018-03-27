@@ -94,6 +94,7 @@ class Wc_Muse {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-core.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-connector.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-orders.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-muse-cron.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-muse-products-hooks.php';
 
 		$this->loader = new Wc_Muse_Loader();
@@ -158,6 +159,20 @@ class Wc_Muse {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		// Cron
+		$cron = new Wc_Muse_Cron();
+
+		//	check if event scheduled before
+		$this->loader->add_action( 'wc_muse_send_order', $cron, 'send_order' );
+
+		$this->loader->add_filter( 'cron_schedules', $cron, 'add_cron_schedules' );
+
+		$this->loader->add_action( 'init', $cron, 'send_order_schedule' );
+
+		// if cron interval was saved
+		$this->loader->add_action( 'update_option_wc-muse-enable_cron', $cron, 'on_settings_saved', 10, 2 );
+		$this->loader->add_action( 'update_option_wc-muse-cron_in_minute', $cron, 'on_settings_saved', 10, 2 );
 
 	}
 

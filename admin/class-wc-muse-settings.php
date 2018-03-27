@@ -70,6 +70,14 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-enable_cron',
 			),
 
+			'cron_in_minute' => array(
+				'name'     => __( 'Run for each X minutes', 'wc-muse' ),
+				'type'     => 'number',
+				'default'  => 60,
+				'id'       => 'wc-muse-cron_in_minute',
+				'custom_attributes' => array( 'min' => 1 ),
+			),
+
 			'section_sync_end' => array(
 				'type'     => 'sectionend',
 			),
