@@ -35,23 +35,20 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-enable_sync',
 			),
 
-			'connection_status' => array(
-				'name'     => __( 'Connection Status', 'wc-muse' ),
+			'api_url' => array(
+				'name'     => __( 'API URL', 'wc-muse' ),
 				'type'     => 'text',
-				'default'  => __( 'Not Connected', 'wc-muse' ),
-				'custom_attributes' => array( 'disabled' => 'true' ),
-				'id'       => 'wc-muse-connected',
+				'id'       => 'wc-muse-api_url',
 			),
 
-			'api_token' => array(
-				'name'     => __( 'API Token', 'wc-muse' ),
+			'auth_token' => array(
+				'name'     => __( 'Auth Token', 'wc-muse' ),
 				'type'     => 'text',
-				'id'       => 'wc-muse-api_token',
+				'id'       => 'wc-muse-auth_token',
 			),
 
 			'section_general_end' => array(
 				'type'     => 'sectionend',
-				'id'       => 'wc-muse-section-general-end',
 			),
 
 			'section_sync' => array(
@@ -69,7 +66,6 @@ class Wc_Muse_Settings {
 
 			'section_sync_end' => array(
 				'type'     => 'sectionend',
-				'id'       => 'wc-muse-section-sync-end',
 			),
 
 		);
