@@ -141,7 +141,7 @@ class Wc_Muse_Orders {
 
 			'notes' => '',
 
-			'legacy_order_id' => $wc_order->get_ID(),
+			'legacy_order_id' => $wc_order->get_order_number(),
 
 			'profile' => $this->get_customer_profile( $wc_order->get_customer_id() ),
 			/*	Fields:
