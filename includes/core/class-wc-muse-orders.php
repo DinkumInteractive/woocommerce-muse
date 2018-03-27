@@ -155,8 +155,8 @@ class Wc_Muse_Orders {
 			'shipping_address' => array(
 				'first_name' => $wc_order->get_shipping_first_name(),
 				'last_name' => $wc_order->get_shipping_last_name(),
-				'first_line' => '', // not available
-				'second_line' => '', // not available
+				'first_line' => $wc_order->get_shipping_address_1(),
+				'second_line' => $wc_order->get_shipping_address_2(),
 				'city' => $wc_order->get_shipping_city(),
 				'state' => $wc_order->get_shipping_state(),
 				'state_code' => $wc_order->get_shipping_state(),
@@ -167,8 +167,8 @@ class Wc_Muse_Orders {
 			'billing_address' => array(
 				'first_name' => $wc_order->get_billing_first_name(),
 				'last_name' => $wc_order->get_billing_last_name(),
-				'first_line' => '',
-				'second_line' => '',
+				'first_line' => $wc_order->get_billing_address_1(),
+				'second_line' => $wc_order->get_billing_address_2(),
 				'city' => $wc_order->get_billing_city(),
 				'state' => $wc_order->get_billing_state(),
 				'state_code' => $wc_order->get_billing_state(),
