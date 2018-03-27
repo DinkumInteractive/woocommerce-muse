@@ -62,8 +62,6 @@ class Wc_Muse_Products_Hook {
 
 			$variant_id = $variation['id'];
 
-			update_post_meta( $variant_id, 'item_slug', $variation['item_slug'] );
-			update_post_meta( $variant_id, 'ticket_type', $variation['ticket_type'] );
 			update_post_meta( $variant_id, 'seat_slug', $variation['seat_slug'] );
 
 		}
@@ -95,7 +93,6 @@ class Wc_Muse_Products_Hook {
 
 		// 	Update Post Meta
 		update_post_meta( $post_id, 'item_slug', sanitize_text_field( $_POST['item_slug'] ) );
-		update_post_meta( $post_id, 'seat_slug', sanitize_text_field( $_POST['seat_slug'] ) );
 		update_post_meta( $post_id, 'ticket_type', sanitize_text_field( $_POST['ticket_type'] ) );
 
 		//	Reattach hook
