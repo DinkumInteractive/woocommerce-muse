@@ -95,6 +95,7 @@ class Wc_Muse {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-connector.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-orders.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-muse-cron.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-payment.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-muse-products-hooks.php';
 
 		$this->loader = new Wc_Muse_Loader();

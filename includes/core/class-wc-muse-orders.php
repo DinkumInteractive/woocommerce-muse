@@ -176,18 +176,7 @@ class Wc_Muse_Orders {
 				'zip_code' => $wc_order->get_billing_postcode(),
 			),
 
-			'payment' => array(
-				'last_4' => '', 
-				'card_type' => '',
-				'cardholder_name' => '',
-				'expiration_month' => '',
-				'expiration_year' => '',
-				'transaction_id' => '',
-				'action' => '',
-				'method' => '',
-				'type' => '',
-				'amount' => '',
-			),
+			'payment' => $this->get_order_payment( $wc_order ),
 
 			'totals' => array(
 				'subtotal' => $wc_order->get_subtotal(), 
@@ -293,6 +282,29 @@ class Wc_Muse_Orders {
 		}
 
 		return $order_items;
+
+	}
+
+	function get_order_payment( $wc_order ) {
+
+		$payment_manager = new Wc_Muse_Payment( $wc_order );
+
+		$payment_data = $payment_manager->get_data();
+
+		/*$payment_data = array(
+			'last_4' => '', 
+			'card_type' => '',
+			'cardholder_name' => '',
+			'expiration_month' => '',
+			'expiration_year' => '',
+			'transaction_id' => '',
+			'action' => '',
+			'method' => '',
+			'type' => '',
+			'amount' => '',
+		);*/
+
+		return $payment_data;
 
 	}
 
