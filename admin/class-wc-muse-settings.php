@@ -47,6 +47,12 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-auth_token',
 			),
 
+			'org_id' => array(
+				'name'     => __( 'Organization ID', 'wc-muse' ),
+				'type'     => 'text',
+				'id'       => 'wc-muse-org_id',
+			),
+
 			'section_general_end' => array(
 				'type'     => 'sectionend',
 			),

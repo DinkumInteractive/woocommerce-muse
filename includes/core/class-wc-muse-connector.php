@@ -11,30 +11,39 @@
 class Wc_Muse_Connector {
 
 	public $base_url;
-	public $api_token;
+	public $auth_token;
+	public $organization_id;
+	public $debug_mode;
 
 	public function __construct() {
 
-		$this->base_url = 'https://muse/api/';
-		$this->api_token = get_option( 'wc-muse-api_token' );
+		$this->base_url = get_option( 'wc-muse-api_url' );
+		$this->auth_token = get_option( 'wc-muse-auth_token' );
+		$this->organization_id = get_option( 'wc-muse-org_id' );
 
 	}
 
-	protected function get( $query = '' ) {
+	public function get( $query = '' ) {
 
 		$url = $this->get_url( $query );
 
 		$response = $this->action( 'get', $url );
 
-		$this->validate_response( $response );
+		if ( $this->debug_mode ) {
+
+			$this->validate_response( $response );
+
+		}
 
 		return $this->transform_response( $response );
 
 	}
 
-	protected function post( $query = '', $package = false, $extra = false ) {
+	public function post( $query = '', $package = false, $extra = false ) {
 		
 		$url 		= $this->get_url( $query, $extra );
+
+		var_dump($url);
 
 		$content 	= $this->transform_package( $package );
 
@@ -42,21 +51,20 @@ class Wc_Muse_Connector {
 			'headers'	=> array(
 				'Content-type: application/json; charset=UTF-8',
 				'Content-Length: ' . strlen( $content ),
+				'authorization:' . $this->auth_token,
 			),
 			'content'	=> $content,
 		);
 
 		$response = $this->action( 'post', $url, $args );
 
-		$this->validate_response( $response );
+		if ( $this->debug_mode ) {
 
-		if ( $conversor ) {
-
-			return $this->transform( $response );
+			$this->validate_response( $response );
 
 		}
 
-		return $response;
+		return $this->transform_response( $response );
 
 	}
 
@@ -88,7 +96,16 @@ class Wc_Muse_Connector {
 			
 		}
 
+		/*	@TODO: testing header out
+		curl_setopt( $curl, CURLINFO_HEADER_OUT, true );
+		 */
+
 		$response = curl_exec( $curl );
+
+		/*	@TODO: header
+		$header_sent = curl_getinfo( $curl, CURLINFO_HEADER_OUT );
+		echo "<pre>"; var_dump($header_sent); echo "</pre>"; exit;
+		 */
 
 		curl_close( $curl );
 
@@ -106,7 +123,7 @@ class Wc_Muse_Connector {
 
 	private function transform_response( $response ) {
 
-		$response = json_decode( $package );
+		$response = ( $this->debug_mode ? $response : json_decode( $response ) );
 
 		return $response;
 
@@ -130,9 +147,7 @@ class Wc_Muse_Connector {
 
 		}
 
-		$query = $query ? "/$query" : $query;
-
-		$url = "{$this->base_url}/{$query}?access_token={$this->api_token}{$extra_param}";
+		$url = "{$this->base_url}/{$query}?{$extra_param}";
 
 		return $url;
 
@@ -155,7 +170,7 @@ class Wc_Muse_Connector {
 	public function validate_response( $response ) {
 
 		if ( $response === FALSE ) {
-			
+
 			//Something goes wrong
 			throw new Exception( __( 'Can\'t connect to API.', 'wc-muse' ) );
 
