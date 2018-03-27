@@ -12,13 +12,6 @@ $ticket_type = get_post_meta( $post_id, 'ticket_type', true );
 			<input type="text" name="item_slug" id="item_slug" value="<?php echo $item_slug; ?>">
 		</p>
 	</div>
-	
-	<div class="options-group">
-		<p class="form-field seat_slug_field ">
-			<label for="seat_slug"><?php _e( 'Seat Slug', 'wc-muse' ) ?></label>
-			<input type="text" name="seat_slug" id="seat_slug" value="<?php echo $seat_slug; ?>">
-		</p>
-	</div>
 
 	<div class="options-group">
 		<p class="form-field ticket_type_field ">
