@@ -266,15 +266,29 @@ class Wc_Muse_Orders {
 
 		foreach ($items as $i => $order_item) {
 
-			$product_id = $order_item->get_product_id();
-
-			$order_items[] = array(
-				'slug' => get_post_meta( $product_id, 'item_slug', true ),
-				'type' => get_post_meta( $product_id, 'ticket_type', true ),
-				'seat_slug' => get_post_meta( $product_id, 'seat_slug', true ),
+			$data = array(
 				'qty' => $order_item->get_quantity(),
 				'price' => $order_item->get_total(),
 			);
+
+			$product = $order_item->get_product();
+
+			$product_id = $product->get_id();
+
+			switch ( $product->get_type() ) {
+
+				case 'simple':
+					$data['slug'] = get_post_meta( $product_id, 'seat_slug', true );
+					$data['type'] = get_post_meta( $product_id, 'ticket_type', true );
+					break;
+
+				case 'variation':
+					$data['seat_slug'] = get_post_meta( $product_id, 'seat_slug', true );
+					break;
+
+			}
+
+			$order_items[] = $data;
 
 		}
 
