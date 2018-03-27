@@ -87,10 +87,15 @@ class Wc_Muse_Payment {
 				break;
 
 			case 'braintree_credit_card':
+				$data['transaction_id'] = get_post_meta( $order_id, '_wc_braintree_credit_card_trans_id', true );
 				$data['card_type'] = get_post_meta( $order_id, '_wc_braintree_credit_card_card_type', true );
-				$data['last_4'] = get_post_meta( $order_id, '_wc_braintree_card_last_four', true );
+				$data['last_4'] = get_post_meta( $order_id, '_wc_braintree_credit_card_account_four', true );
 				$data['expiration_date'] = get_post_meta( $order_id, '_wc_braintree_credit_card_card_expiry_date', true );
-				$data['auth_code'] = get_post_meta( $order_id, '_wc_braintree_credit_card_authorization_cod', true );
+				$data['auth_code'] = get_post_meta( $order_id, '_wc_braintree_credit_card_authorization_code', true );
+				$data['customer_id'] = get_post_meta( $order_id, '_wc_braintree_credit_card_customer_id', true );
+				$data['action'] = ( get_post_meta( $order_id, '_wc_braintree_credit_card_charge_captured', true ) === 'no' ) ? 'authorize' : 'charge';
+				$data['method'] = 'braintree';
+				$data['type'] = 'credit_card';
 				break;
 
 		}
