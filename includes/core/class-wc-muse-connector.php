@@ -14,6 +14,8 @@ class Wc_Muse_Connector {
 	public $auth_token;
 	public $organization_id;
 	public $debug_mode = true;
+	private $log_handler;
+	private $context;
 
 	public function __construct() {
 
@@ -21,15 +23,28 @@ class Wc_Muse_Connector {
 		$this->auth_token = get_option( 'wc-muse-auth_token' );
 		$this->organization_id = get_option( 'wc-muse-org_id' );
 
+		//	Use logger if WC >= version 3
+		if ( Wc_Muse::woocommerce_version_compare( '3.0.0' ) ) {
+
+			$this->log_handler = wc_get_logger();
+
+			$this->context = array( 'source' => 'woocommerce-muse' );
+
+		}
+
 	}
 
 	public function get( $query = '' ) {
 
 		$url = $this->get_url( $query );
 
-		$response = $this->action( 'get', $url );
+		try {
+			$response = $this->action( 'get', $url );
+			return $this->transform_response( $response );
+		} catch (Exception $e) {
+			throw $e;
+		}
 
-		return $this->transform_response( $response );
 	}
 
 	public function post( $query = '', $package = false, $extra = false ) {
@@ -47,13 +62,17 @@ class Wc_Muse_Connector {
 			'content'	=> $content,
 		);
 
-		if ( $this->debug_mode ) {
-			var_dump( $args );
+		try {
+
+			$response = $this->action( 'post', $url, $args );
+			return $this->transform_response( $response );
+
+		} catch (Exception $e) {
+
+			throw $e;
+
 		}
 
-		$response = $this->action( 'post', $url, $args );
-
-		return $this->transform_response( $response );
 	}
 
 	private function action( $type, $url, $args = false ) {
@@ -68,8 +87,8 @@ class Wc_Muse_Connector {
 
 			case 'post':
 				if ( ! $args ) return false;
-				curl_setopt( $curl, CURLOPT_CONNECTTIMEOUT, 20 );
-				curl_setopt( $curl, CURLOPT_TIMEOUT, 60 );
+				curl_setopt( $curl, CURLOPT_CONNECTTIMEOUT, 10 );
+				curl_setopt( $curl, CURLOPT_TIMEOUT, 10 );
 				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
 				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
 				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, false );
@@ -89,15 +108,25 @@ class Wc_Muse_Connector {
 		 */
 
 		$response = curl_exec( $curl );
-
-		/*	@TODO: header
-		$header_sent = curl_getinfo( $curl, CURLINFO_HEADER_OUT );
-		echo "<pre>"; var_dump($header_sent); echo "</pre>"; exit;
-		 */
-
+		$http_status = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
 		curl_close( $curl );
 
-		return $response;
+		if ( $http_status === 200 || $http_status === 201 ) {
+			return $response;
+		} else {
+			//	Update log with errors
+			if ( $this->log_handler && $this->debug_mode ) {
+
+				$message = $http_status . "\n";
+				$message .= json_encode( $response ) . "\n\n";
+
+				$this->log_handler->notice( $message, $this->context );
+
+			}
+
+			//Something goes wrong
+			throw new Exception( json_encode( $response ), $http_status );
+		}
 
 	}
 
@@ -109,7 +138,7 @@ class Wc_Muse_Connector {
 
 	private function transform_response( $response ) {
 
-		return $this->debug_mode ? json_decode( $response ) : $response;
+		return $this->debug_mode ? $response : json_decode( $response );
 
 	}
 
@@ -148,17 +177,6 @@ class Wc_Muse_Connector {
 		}
 
 		return $extra_param;
-
-	}
-
-	public function validate_response( $response ) {
-
-		if ( $response === FALSE ) {
-
-			//Something goes wrong
-			throw new Exception( __( 'Can\'t connect to API.', 'wc-muse' ) );
-
-		}
 
 	}
 

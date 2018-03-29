@@ -37,6 +37,8 @@ class Wc_Muse_Cron {
 
 			if ( $interval ) {
 
+				$interval = $interval <= 5 ? 5 : $interval;
+
 				$schedules[$this->schedule_recurrence] = array(
 					'interval'  => $this->cron_interval * 60, 
 					'display'   => __( sprintf( 'Send order every %s Minutes', $interval ), 'wc-muse' )

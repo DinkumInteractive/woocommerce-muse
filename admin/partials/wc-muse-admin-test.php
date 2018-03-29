@@ -22,27 +22,42 @@ if ( isset( $_POST ) ){
 		$order_id = sanitize_text_field( $_POST['order_id'] );
 
 		$wc_muse_orders = new Wc_Muse_Orders();
-		$wc_muse_connector = new Wc_Muse_Connector();
-		$wc_muse_connector->debug_mode = true;
 
 		$wc_order = new WC_Order( $order_id );
 
-		$content = $wc_muse_orders->convert_wc_order( $wc_order );
-
-		$extra = array( 'extra'=>'an_extra' );
-
 		try {
 
-			$organization_id = $wc_muse_connector->organization_id;
-
-			$debug['content'] = $wc_muse_connector->post( "integrations/$organization_id/orders", array('order_data' => $content), $extra );
+			$debug['response'] = $wc_muse_orders->export_order( $wc_order );
 			
 		} catch (Exception $e) {
 			
-			$debug['content'] = 'Cannot connect';
+			$debug['response'] = 'Cannot connect';
 
 		}
 
+	}
+
+	// 	Test Changing order status
+	if ( isset( $_POST['test_change_order_status'] ) ) {
+
+		$order_id = sanitize_text_field( $_POST['order_id'] );
+
+		$order = wc_muse_orders::complete_order( $order_id );
+
+		update_post_meta( $order_id, '_muse_response', '1' );
+
+		$debug['response'] = $order;
+
+	}
+
+	// 	Test Changing order status
+	if ( isset( $_POST['test_get_orders'] ) ) {
+
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+
+		$wc_muse_core = new Wc_Muse_Core();
+
+		$debug['response'] = $wc_muse_core->export_orders();
 
 	}
 
@@ -69,6 +84,21 @@ if ( isset( $_POST ) ){
 	<form method="post">
 		<input type="hidden" name="test_outbound_request" value="1">
 		<p><input type="text" name="order_id"></p>
+		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
+	</form>
+	
+	<!-- Change order status -->
+	<h2><?php _e( 'Change order status', 'wc-muse' ) ?></h2>
+	<form method="post">
+		<input type="hidden" name="test_change_order_status" value="1">
+		<p><input type="text" name="order_id"></p>
+		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
+	</form>
+	
+	<!-- Change order status -->
+	<h2><?php _e( 'Get orders to export', 'wc-muse' ) ?></h2>
+	<form method="post">
+		<input type="hidden" name="test_get_orders" value="1">
 		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
 	</form>
 

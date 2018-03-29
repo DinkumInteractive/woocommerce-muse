@@ -163,6 +163,7 @@ class Wc_Muse {
 
 		// Cron
 		$cron = new Wc_Muse_Cron();
+		$core = new Wc_Muse_Core();
 
 		//	check if event scheduled before
 		$this->loader->add_action( 'wc_muse_send_order', $cron, 'send_order' );
@@ -174,6 +175,11 @@ class Wc_Muse {
 		// if cron interval was saved
 		$this->loader->add_action( 'update_option_wc-muse-enable_cron', $cron, 'on_settings_saved', 10, 2 );
 		$this->loader->add_action( 'update_option_wc-muse-cron_in_minute', $cron, 'on_settings_saved', 10, 2 );
+		$this->loader->add_action( 'wc_muse_cron_send_order', $core, 'export_orders' );
+		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'change_order_status', 10, 2 );
+		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'update_success_meta', 10, 2 );
+		$this->loader->add_action( 'wc_muse_order_export_failed', $core, 'update_failed_meta', 10, 2 );
+
 
 	}
 
@@ -215,6 +221,16 @@ class Wc_Muse {
 	 */
 	public function get_version() {
 		return $this->version;
+	}
+
+	/**
+	 * Compare the version number of WooCommerce.
+	 *
+	 * @since     1.0.0     method to compare currently used WooCommerce version.
+	 * @return    string    The version number of the plugin.
+	 */
+	public static function woocommerce_version_compare( $version, $compare = '>=' ) {
+		return ( defined( 'WOOCOMMERCE_VERSION' ) && version_compare( WOOCOMMERCE_VERSION, $version, $compare ) );
 	}
 
 }
