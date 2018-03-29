@@ -75,10 +75,12 @@ class Wc_Muse_Payment {
 			'method' => $this->order->get_payment_method(),
 		);
 
+		$order_id = $this->order->get_id();
+
 		switch ( $this->order->get_payment_method() ) {
 
 			case 'stripe':
-				$stripe_metas = get_post_meta( $this->order->get_id(), '_stripe_metas_for_cartspan', true );
+				$stripe_metas = get_post_meta( $order_id, '_stripe_metas_for_cartspan', true );
 				if ( $stripe_metas ) {
 					$data['card_type'] = $stripe_metas['cc_type'];
 					$data['last_4'] = $stripe_metas['cc_last4'];

@@ -35,7 +35,7 @@ if ( isset( $_POST ) ){
 
 			$organization_id = $wc_muse_connector->organization_id;
 
-			$debug['content'] = $wc_muse_connector->post( "integrations/$organization_id/orders", $content, $extra );
+			$debug['content'] = $wc_muse_connector->post( "integrations/$organization_id/orders", array('order_data' => $content), $extra );
 			
 		} catch (Exception $e) {
 			

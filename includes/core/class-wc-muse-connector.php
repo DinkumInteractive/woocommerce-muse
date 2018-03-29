@@ -13,7 +13,7 @@ class Wc_Muse_Connector {
 	public $base_url;
 	public $auth_token;
 	public $organization_id;
-	public $debug_mode;
+	public $debug_mode = true;
 
 	public function __construct() {
 
@@ -29,21 +29,12 @@ class Wc_Muse_Connector {
 
 		$response = $this->action( 'get', $url );
 
-		if ( $this->debug_mode ) {
-
-			$this->validate_response( $response );
-
-		}
-
 		return $this->transform_response( $response );
-
 	}
 
 	public function post( $query = '', $package = false, $extra = false ) {
 		
 		$url 		= $this->get_url( $query, $extra );
-
-		var_dump($url);
 
 		$content 	= $this->transform_package( $package );
 
@@ -56,16 +47,13 @@ class Wc_Muse_Connector {
 			'content'	=> $content,
 		);
 
-		$response = $this->action( 'post', $url, $args );
-
 		if ( $this->debug_mode ) {
-
-			$this->validate_response( $response );
-
+			var_dump( $args );
 		}
 
-		return $this->transform_response( $response );
+		$response = $this->action( 'post', $url, $args );
 
+		return $this->transform_response( $response );
 	}
 
 	private function action( $type, $url, $args = false ) {
@@ -80,8 +68,8 @@ class Wc_Muse_Connector {
 
 			case 'post':
 				if ( ! $args ) return false;
-				curl_setopt( $curl, CURLOPT_CONNECTTIMEOUT, 10 );
-				curl_setopt( $curl, CURLOPT_TIMEOUT, 10 );
+				curl_setopt( $curl, CURLOPT_CONNECTTIMEOUT, 20 );
+				curl_setopt( $curl, CURLOPT_TIMEOUT, 60 );
 				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
 				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
 				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, false );
@@ -115,17 +103,13 @@ class Wc_Muse_Connector {
 
 	private function transform_package( $package ) {
 
-		$content = json_encode( $package );
-
-		return $content;
+		return json_encode( $package );
 
 	}
 
 	private function transform_response( $response ) {
 
-		$response = ( $this->debug_mode ? $response : json_decode( $response ) );
-
-		return $response;
+		return $this->debug_mode ? json_decode( $response ) : $response;
 
 	}
 

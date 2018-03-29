@@ -255,11 +255,6 @@ class Wc_Muse_Orders {
 
 		foreach ($items as $i => $order_item) {
 
-			$data = array(
-				'qty' => $order_item->get_quantity(),
-				'price' => $order_item->get_total(),
-			);
-
 			$product = $order_item->get_product();
 
 			$product_id = $product->get_id();
@@ -267,15 +262,21 @@ class Wc_Muse_Orders {
 			switch ( $product->get_type() ) {
 
 				case 'simple':
-					$data['slug'] = get_post_meta( $product_id, 'seat_slug', true );
-					$data['type'] = get_post_meta( $product_id, 'ticket_type', true );
+					$product_parent_id = $product->get_id();
 					break;
 
 				case 'variation':
-					$data['seat_slug'] = get_post_meta( $product_id, 'seat_slug', true );
+					$product_parent_id = $product->get_parent_id();
 					break;
 
 			}
+			$data = array(
+				'qty' => $order_item->get_quantity(),
+				'price' => $wc_order->get_item_subtotal( $order_item, false, false ),
+				'slug' => get_post_meta( $product_parent_id, 'item_slug', true ),
+				'type' => get_post_meta( $product_parent_id, 'ticket_type', true ),
+				'seat_slug' => get_post_meta( $product_id, 'seat_slug', true )
+			);
 
 			$order_items[] = $data;
 
