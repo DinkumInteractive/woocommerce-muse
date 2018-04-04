@@ -10,21 +10,63 @@
  */
 class Wc_Muse_Core {
 
-	public function validate_token( $token ) {
+	public function export_orders() {
+		return;
 
-		$wc_muse_order = new Wc_Muse_Orders();
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
 
-		/*	@TODO: for test purpose only.
-		 */
-		$test = $wc_muse_order->get_orders_to_export( 10, 1 );
-		echo "<pre>";
-		var_dump($test);
-		echo "</pre>";
-		exit;
-		
-		/*	@TODO: create validation process.
-		 */
-		return false;
+		$export = array();
+
+		$page = 1;
+
+		while ( $orders = $wc_muse_orders->get_wc_orders( 10, $page ) ) {
+
+			if ( ! $orders ) break;
+
+			foreach ( $orders as $order ) {
+				
+				$export[] = $wc_muse_orders->export_order( $order );
+
+			}
+
+			$page++;
+
+		}
+
+		return $export;
+
+	}
+
+	public function change_order_status( $wc_muse_order ) {
+
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+
+		// TODO: we need this as an input setting to define it in wp admin
+		$new_status = 'completed';
+
+		$wc_muse_orders->update_status( $wc_muse_order, $new_status );
+
+	}
+
+	public function update_success_meta( $wc_muse_order, $response ) {
+
+		if ( !method_exists( $wc_muse_order, 'get_id' ) ) {
+			wc_get_logger()->error( sprintf( 'Get ID method does not exists in: %s', serialize( $wc_muse_order ) ), array( 'source' => 'woocommerce-muse' ) );
+			return;
+		}
+
+		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', $response );
+
+	}
+
+	public function update_failed_meta( $wc_muse_order, $response ) {
+
+		if ( !method_exists( $wc_muse_order, 'get_id' ) ) {
+			wc_get_logger()->error( sprintf( 'Get ID method does not exists in: %s', serialize( $wc_muse_order ) ), array( 'source' => 'woocommerce-muse' ) );
+			return;
+		}
+
+		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_failed', $response );
 
 	}
 

@@ -23,20 +23,6 @@ class Wc_Muse_Orders {
 	protected static $connector = false;
 
 	/**
-	 * Array of order status to retrieve from woo orders
-	 * @var array
-	 */
-	public $order_status_to_retrieve = array('wc-shipping');
-	public $order_status_to_export = array('wc-processing');
-	public $order_status_to_process = array('wc-processing');
-
-	/**
-	 * Time in seconds to clear log transients
-	 * @var integer
-	 */
-	public $clear_transient_after = 43200; // 12 hours
-
-	/**
 	 * Initialize the plugin.
 	 *
 	 * @since     1.0.0
@@ -80,19 +66,21 @@ class Wc_Muse_Orders {
      * Get orders from WooCommerce
      * @return array of WC_Order
      */
-	function get_wc_orders( $limit, $page ){
+	function get_wc_orders( $limit = -1, $page = 1 ){
 
 		$query = new WC_Order_Query( array(
 			'limit' => $limit,
 			'page' => $page,
-            'post_status' => $this->get_order_status(),
+			'post_status' => $this->get_order_status(),
 			'orderby' => 'ID',
-			'order'   => 'ASC',
+			'order' => 'ASC',
+			'meta_key' => '_wc_muse_order_export_success',
+			'meta_compare' => 'NOT EXISTS'
 		) );
 
 		$orders = $query->get_orders();
 
-		return ( $orders ? $orders : false );
+		return ( $orders ? $orders : [] );
 
 	}
 
@@ -102,30 +90,11 @@ class Wc_Muse_Orders {
      */
 	function get_order_status(){
 
-		return array_intersect(array_keys( wc_get_order_statuses() ), $this->order_status_to_retrieve);
+		// $order_status = wc_get_order_statuses();
+		// TODO: we need an input setting to define this in the admin
+		$order_status = 'processing';
 
-	}
-
-	/**
-     * Get allowed orders status to retrieve
-     * @return string
-     */
-	function get_orders_to_export( $limit, $page ){
-
-		$wc_orders = $this->get_wc_orders( $limit, $page );
-
-		if ( ! $wc_orders ) return false;
-
-		$order = array();
-
-		foreach ( $wc_orders as $wc_order ) {
-
-			$order[] = $this->convert_wc_order( $wc_order );
-
-		}
-
-		// return json_encode( $order );
-		return $order;
+		return $order_status;
 
 	}
 
@@ -135,13 +104,15 @@ class Wc_Muse_Orders {
      */
 	function convert_wc_order( $wc_order ){
 
-		// var_dump($wc_order->get_subtotal());
-
 		$order = array(
 
 			'notes' => '',
 
+			'admin_email' => 'support@dinkuminteractive.com',
+
 			'legacy_order_id' => $wc_order->get_order_number(),
+
+			'wp_order_id' => $wc_order->get_id(),
 
 			'profile' => $this->get_customer_profile( $wc_order->get_customer_id() ),
 			/*	Fields:
@@ -306,6 +277,46 @@ class Wc_Muse_Orders {
 		);*/
 
 		return $payment_data;
+
+	}
+
+	public static function complete_order( $order ) {
+
+		return $this->update_status( $order, 'completed' );
+
+	}
+
+	public static function update_status( $order, $status ) {
+
+		if ( !$order || !( $order instanceof WC_Order ) ) return false;
+
+		return $order->update_status( $status );
+
+	}
+
+	public function export_order( $wc_order ) {
+
+		$connector = new Wc_Muse_Connector();
+
+		try {
+
+			$organization_id = $connector->organization_id;
+
+			$content = array( 'order_data' => $this->convert_wc_order( $wc_order ) );
+
+			$response = $connector->post( "integrations/{$organization_id}/orders", $content );
+
+			do_action( 'wc_muse_order_export_success', $wc_order, $response );
+
+			return $response;
+			
+		} catch ( Exception $e ) {
+			
+			do_action( 'wc_muse_order_export_failed', $wc_order, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
+
+			return false;
+
+		}
 
 	}
 
