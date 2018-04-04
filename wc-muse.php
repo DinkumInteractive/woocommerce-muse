@@ -16,6 +16,8 @@
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       wc-muse
  * Domain Path:       /languages
+ * WC requires at least: 	3.0
+ * WC tested up to: 		3.2.3
  */
 
 // If this file is called directly, abort.
@@ -46,7 +48,7 @@ function wc_muse_woocommerce_missing_notice() {
 
 	$class = 'notice notice-error';
 
-	$text = '<strong>'. __( 'Warning', 'wc-muse' ) .'</strong>' . __( ': WooCommerce Muse needs Woocommerce to function properly.', 'wc-muse' );
+	$text = '<strong>'. __( 'Warning', 'wc-muse' ) .'</strong>' . __( ': WooCommerce Muse needs at least Woocommerce 3.0.0 to function properly.', 'wc-muse' );
 
 	$notice = "<div class='$class'><p>$text</p></div>";
 
@@ -57,15 +59,24 @@ function wc_muse_woocommerce_missing_notice() {
 function wc_muse_woocommerce_missing() {
 
 	//	WooCommerce is missing.
-	if ( is_admin() && in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+	if ( 
+		// 	Require WooCommerce
+		is_admin() && in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) &&
+		// 	Require WooCommerce 3+
+		defined( 'WOOCOMMERCE_VERSION' ) && version_compare( WOOCOMMERCE_VERSION, '3.0.0', '>=' )
+	) {
 
 		update_option( 'wc_muse_active', true );
+
+		return false;
 
 	} else {
 		
 		update_option( 'wc_muse_active', false );
 
 		add_action( 'admin_notices', 'wc_muse_woocommerce_missing_notice' );
+
+		return true;
 
 	}
 
@@ -74,8 +85,6 @@ function wc_muse_woocommerce_missing() {
 register_activation_hook( __FILE__, 'activate_wc_muse' );
 
 register_deactivation_hook( __FILE__, 'deactivate_wc_muse' );
-
-add_action( 'admin_init', 'wc_muse_woocommerce_missing' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -101,6 +110,8 @@ function wc_muse_define_constants() {
  */
 function run_wc_muse() {
 
+	if ( wc_muse_woocommerce_missing() ) return false;
+	
 	if ( ! get_option( 'wc_muse_active' ) ) return false;
 
 	wc_muse_define_constants();
@@ -111,4 +122,4 @@ function run_wc_muse() {
 
 }
 
-run_wc_muse();
+add_action( 'plugins_loaded', 'run_wc_muse' );
