@@ -71,7 +71,7 @@ class Wc_Muse_Orders {
 		$query = new WC_Order_Query( array(
 			'limit' => $limit,
 			'page' => $page,
-			'post_status' => $this->get_order_status(),
+			'status' => $this->get_order_status(),
 			'orderby' => 'ID',
 			'order' => 'ASC',
 			'meta_key' => '_wc_muse_order_export_success',
@@ -92,7 +92,7 @@ class Wc_Muse_Orders {
 
 		// $order_status = wc_get_order_statuses();
 		// TODO: we need an input setting to define this in the admin
-		$order_status = 'processing';
+		$order_status = get_option( 'wc-muse-order_status_included' );
 
 		return $order_status;
 

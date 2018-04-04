@@ -61,6 +61,15 @@ if ( isset( $_POST ) ){
 
 	}
 
+	// 	Test Changing order status
+	if ( isset( $_POST['test_get_orders_with_status'] ) ) {
+
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+
+		$debug['response'] = $wc_muse_orders->get_wc_orders();
+
+	}
+
 }
 
 /*	@NOTE: Use $debug['content'], $debug['response'] to debug.
@@ -99,6 +108,13 @@ if ( isset( $_POST ) ){
 	<h2><?php _e( 'Get orders to export', 'wc-muse' ) ?></h2>
 	<form method="post">
 		<input type="hidden" name="test_get_orders" value="1">
+		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
+	</form>
+	
+	<!-- Change order status -->
+	<h2><?php _e( 'Get orders (Without export)', 'wc-muse' ) ?></h2>
+	<form method="post">
+		<input type="hidden" name="test_get_orders_with_status" value="1">
 		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
 	</form>
 
