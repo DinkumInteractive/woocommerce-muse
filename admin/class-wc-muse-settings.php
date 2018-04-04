@@ -88,6 +88,24 @@ class Wc_Muse_Settings {
 				'type'     => 'sectionend',
 			),
 
+			'section_orders' => array(
+				'name'     => __( 'Order Settings', 'wc-muse' ),
+				'type'     => 'title',
+				'id'       => 'wc-muse-section-sync',
+			),
+
+			'order_status_included' => array(
+				'name'     => __( 'Order status to send', 'wc-muse' ),
+				'type'     => 'multiselect',
+				'default'  => '',
+				'options'  => wc_get_order_statuses(),
+				'id'       => 'wc-muse-order_status_included',
+			),
+
+			'section_orders_end' => array(
+				'type'     => 'sectionend',
+			),
+
 		);
 
 	}
