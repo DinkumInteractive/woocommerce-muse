@@ -108,7 +108,7 @@ class Wc_Muse_Orders {
 
 			'notes' => '',
 
-			'admin_email' => 'support@dinkuminteractive.com',
+			'admin_email' => get_option( 'wc-muse-admin_email' ),
 
 			'legacy_order_id' => $wc_order->get_order_number(),
 

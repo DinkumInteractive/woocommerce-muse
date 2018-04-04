@@ -53,6 +53,12 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-org_id',
 			),
 
+			'admin_email' => array(
+				'name'     => __( 'Admin email', 'wc-muse' ),
+				'type'     => 'text',
+				'id'       => 'wc-muse-admin_email',
+			),
+
 			'section_general_end' => array(
 				'type'     => 'sectionend',
 			),
