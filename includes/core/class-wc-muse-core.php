@@ -42,7 +42,7 @@ class Wc_Muse_Core {
 		$wc_muse_orders = Wc_Muse_Orders::get_instance();
 
 		// TODO: we need this as an input setting to define it in wp admin
-		$new_status = 'completed';
+		$new_status = get_option( 'wc-muse-order_status_processed' );
 
 		$wc_muse_orders->update_status( $wc_muse_order, $new_status );
 

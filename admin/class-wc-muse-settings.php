@@ -94,6 +94,14 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-section-sync',
 			),
 
+			'order_status_processed' => array(
+				'name'     => __( 'Order status to set', 'wc-muse' ),
+				'type'     => 'select',
+				'default'  => '',
+				'options'  => wc_get_order_statuses(),
+				'id'       => 'wc-muse-order_status_processed',
+			),
+
 			'order_status_included' => array(
 				'name'     => __( 'Order status to send', 'wc-muse' ),
 				'type'     => 'multiselect',

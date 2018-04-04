@@ -41,10 +41,12 @@ if ( isset( $_POST ) ){
 	if ( isset( $_POST['test_change_order_status'] ) ) {
 
 		$order_id = sanitize_text_field( $_POST['order_id'] );
+		
+		$wc_order = new WC_Order( $order_id );
 
-		$order = wc_muse_orders::complete_order( $order_id );
+		$new_status = get_option( 'wc-muse-order_status_processed' );
 
-		update_post_meta( $order_id, '_muse_response', '1' );
+		$order = wc_muse_orders::update_status( $wc_order, $new_status );
 
 		$debug['response'] = $order;
 
