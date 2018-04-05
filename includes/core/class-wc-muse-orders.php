@@ -324,4 +324,26 @@ class Wc_Muse_Orders {
 
 	}
 
+	public function get_muse_order( $muse_order_id ) {
+
+		$connector = new Wc_Muse_Connector();
+
+		$connector->set_debug( false );
+
+		try {
+
+			$response = $connector->get( "orders/{$muse_order_id}/overview" );
+
+			return $response;
+			
+		} catch ( Exception $e ) {
+			
+			do_action( 'wc_muse_order_read_failed', $wc_order, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
+
+			return false;
+
+		}
+
+	}
+
 }

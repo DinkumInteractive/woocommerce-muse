@@ -72,6 +72,17 @@ if ( isset( $_POST ) ){
 
 	}
 
+	// 	Test Changing order status
+	if ( isset( $_POST['test_get_order_from_muse'] ) ) {
+
+		$muse_order_id = sanitize_text_field( $_POST['order_id'] );
+
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+
+		$debug['response'] = $wc_muse_orders->get_muse_order( $muse_order_id );
+
+	}
+
 }
 
 /*	@NOTE: Use $debug['content'], $debug['response'] to debug.
@@ -117,6 +128,14 @@ if ( isset( $_POST ) ){
 	<h2><?php _e( 'Get orders (Without export)', 'wc-muse' ) ?></h2>
 	<form method="post">
 		<input type="hidden" name="test_get_orders_with_status" value="1">
+		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
+	</form>
+	
+	<!-- Read order from muse -->
+	<h2><?php _e( 'Read order from Muse (Fixed order ID)', 'wc-muse' ) ?></h2>
+	<form method="post">
+		<input type="hidden" name="test_get_order_from_muse" value="1">
+		<p><input type="text" name="order_id"></p>
 		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
 	</form>
 

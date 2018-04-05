@@ -38,8 +38,16 @@ class Wc_Muse_Connector {
 
 		$url = $this->get_url( $query );
 
+		$args 		= array(
+			'headers'	=> array(
+				'Content-type: application/json; charset=UTF-8',
+				'Content-Length: ' . strlen( $content ),
+				'authorization:' . $this->auth_token,
+			),
+		);
+
 		try {
-			$response = $this->action( 'get', $url );
+			$response = $this->action( 'get', $url, $args );
 			return $this->transform_response( $response );
 		} catch (Exception $e) {
 			throw $e;
@@ -99,6 +107,7 @@ class Wc_Muse_Connector {
 
 			case 'get':
 				curl_setopt( $curl, CURLOPT_HEADER, 0 );
+				curl_setopt( $curl, CURLOPT_HTTPHEADER, $args['headers'] );
 				break;
 			
 		}
@@ -160,7 +169,7 @@ class Wc_Muse_Connector {
 
 		}
 
-		$url = "{$this->base_url}/{$query}?{$extra_param}";
+		$url = "{$this->base_url}/{$query}" . ( $extra_param ? "?{$extra_param}" : '' );
 
 		return $url;
 
@@ -177,6 +186,12 @@ class Wc_Muse_Connector {
 		}
 
 		return $extra_param;
+
+	}
+
+	public function set_debug( $bool ) {
+
+		$this->debug_mode = $bool;
 
 	}
 
