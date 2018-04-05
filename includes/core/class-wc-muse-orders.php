@@ -112,7 +112,7 @@ class Wc_Muse_Orders {
 
 			'admin_email' => get_option( 'wc-muse-admin_email' ),
 
-			'tags' => sprintf( 'Woo%s', 'Marlboro'),
+			'tags' => get_option( 'wc-muse-order_tags' ),
 
 			'legacy_order_id' => $wc_order->get_order_number(),
 

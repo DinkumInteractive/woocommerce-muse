@@ -94,6 +94,12 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-section-sync',
 			),
 
+			'order_tags' => array(
+				'name'     => __( 'Order tags', 'wc-muse' ),
+				'type'     => 'text',
+				'id'       => 'wc-muse-order_tags',
+			),
+
 			'order_status_processed' => array(
 				'name'     => __( 'Order status to set', 'wc-muse' ),
 				'type'     => 'select',
