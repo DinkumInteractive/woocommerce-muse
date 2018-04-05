@@ -50,12 +50,20 @@ class Wc_Muse_Core {
 
 	public function update_success_meta( $wc_muse_order, $response ) {
 
-		if ( !method_exists( $wc_muse_order, 'get_id' ) ) {
+		if ( ! method_exists( $wc_muse_order, 'get_id' ) ) {
 			wc_get_logger()->error( sprintf( 'Get ID method does not exists in: %s', serialize( $wc_muse_order ) ), array( 'source' => 'woocommerce-muse' ) );
 			return;
 		}
 
-		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', $response );
+		if ( ! isset( $response->id ) ) {
+			wc_get_logger()->error( sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ), array( 'source' => 'woocommerce-muse' ) );
+		}
+
+		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', true );
+
+		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_id', 
+			( isset( $response->id ) ? $response->id : sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ) ) 
+		);
 
 	}
 
