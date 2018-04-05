@@ -104,11 +104,15 @@ class Wc_Muse_Orders {
      */
 	function convert_wc_order( $wc_order ){
 
+		$customer_note = $wc_order->get_customer_note();
+
 		$order = array(
 
-			'notes' => '',
+			'notes' => !empty( $customer_note ) ? sprintf( 'Customer Note: %s', $customer_note ) : '',
 
 			'admin_email' => get_option( 'wc-muse-admin_email' ),
+
+			'tags' => sprintf( 'Woo%s', 'Marlboro'),
 
 			'legacy_order_id' => $wc_order->get_order_number(),
 
