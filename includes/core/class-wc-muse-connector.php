@@ -13,7 +13,7 @@ class Wc_Muse_Connector {
 	public $base_url;
 	public $auth_token;
 	public $organization_id;
-	public $debug_mode = true;
+	public $debug_mode = false;
 	private $log_handler;
 	private $context;
 
