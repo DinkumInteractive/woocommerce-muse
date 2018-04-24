@@ -153,13 +153,15 @@ class Wc_Muse_Orders {
 
 			'payment' => $this->get_order_payment( $wc_order ),
 
+			'fees' => $this->get_order_fees( $wc_order ),
+
 			'totals' => array(
 				'subtotal' => $wc_order->get_subtotal(), 
 				'total' => $wc_order->get_total(),
 				'discount' => $wc_order->get_total_discount(),
 				'shipping' => $wc_order->get_shipping_total(),
 				'taxes' =>$wc_order->get_total_tax(),
-				'fees' => '',
+				'total_fees' => $this->get_order_total_fees( $wc_order ),
 			),
 
 			'coupons' => $this->get_order_coupons( $wc_order ),
@@ -179,7 +181,7 @@ class Wc_Muse_Orders {
 
 		);
 
-		return $order;
+		return apply_filters( 'wc_muse_order', $order );
 
 	}
 
@@ -281,6 +283,44 @@ class Wc_Muse_Orders {
 		);*/
 
 		return $payment_data;
+
+	}
+
+	function get_order_fees( $wc_order ) {
+
+		$order_fees = array();
+
+		if ( $fees = $wc_order->get_fees() ) {
+
+			foreach ( $fees as $fee ) {
+				
+				$order_fees[] = $fee->get_total();
+
+			}
+
+		}
+
+		return apply_filters( 'wc_muse_order_fees', $order_fees );
+
+	}
+
+	function get_order_total_fees( $wc_order ) {
+
+		$order_fees = '';
+
+		if ( $fees = $wc_order->get_fees() ) {
+
+			$order_fees = 0;
+
+			foreach ( $fees as $fee ) {
+
+				$order_fees += $fee->get_total();
+
+			}
+
+		}
+
+		return apply_filters( 'wc_muse_order_total_fees', $order_feess );
 
 	}
 
