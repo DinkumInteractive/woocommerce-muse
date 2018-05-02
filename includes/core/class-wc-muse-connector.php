@@ -139,7 +139,7 @@ class Wc_Muse_Connector {
 
 	}
 
-	private function transform_package( $package ) {
+	public function transform_package( $package ) {
 
 		return json_encode( $package );
 

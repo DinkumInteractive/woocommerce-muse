@@ -12,7 +12,10 @@ if ( isset( $_POST ) ){
 
 		$content_order = $wc_muse_orders->convert_wc_order( $wc_order );
 
-		$debug['content'] = $content_order;
+		$debug['content'][] = $content_order;
+
+		$debug['content'][] = "####################  Order sent to muse #############";
+		$debug['content'][] = json_encode( array( 'order_data' => $content_order  ) );
 
 	}
 

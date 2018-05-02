@@ -20,7 +20,7 @@ class Wc_Muse_Orders {
 	 * Connector class
 	 * @var obj
 	 */
-	protected static $connector = false;
+	public $connector = false;
 
 	/**
 	 * Initialize the plugin.
@@ -30,6 +30,8 @@ class Wc_Muse_Orders {
 	function __construct() {
 
 		$this->connector = new Wc_Muse_Connector();
+
+		$this->connector->set_debug( true );
 	
 	}
 
@@ -294,7 +296,7 @@ class Wc_Muse_Orders {
 
 			foreach ( $fees as $fee ) {
 				
-				$order_fees[] = $fee->get_total();
+				$order_fees[] = array( 'name' => $fee->get_name(), 'amount' => $fee->get_total() );
 
 			}
 
@@ -306,11 +308,9 @@ class Wc_Muse_Orders {
 
 	function get_order_total_fees( $wc_order ) {
 
-		$order_fees = '';
+		$order_fees = 0;
 
 		if ( $fees = $wc_order->get_fees() ) {
-
-			$order_fees = 0;
 
 			foreach ( $fees as $fee ) {
 
@@ -320,7 +320,7 @@ class Wc_Muse_Orders {
 
 		}
 
-		return apply_filters( 'wc_muse_order_total_fees', $order_feess );
+		return apply_filters( 'wc_muse_order_total_fees', $order_fees );
 
 	}
 
@@ -340,15 +340,13 @@ class Wc_Muse_Orders {
 
 	public function export_order( $wc_order ) {
 
-		$connector = new Wc_Muse_Connector();
-
 		try {
 
-			$organization_id = $connector->organization_id;
+			$organization_id = $this->connector->organization_id;
 
 			$content = array( 'order_data' => $this->convert_wc_order( $wc_order ) );
 
-			$response = $connector->post( "integrations/{$organization_id}/orders", $content );
+			$response = $this->connector->post( "integrations/{$organization_id}/orders", $content );
 
 			do_action( 'wc_muse_order_export_success', $wc_order, $response );
 
@@ -366,13 +364,9 @@ class Wc_Muse_Orders {
 
 	public function get_muse_order( $muse_order_id ) {
 
-		$connector = new Wc_Muse_Connector();
-
-		$connector->set_debug( false );
-
 		try {
 
-			$response = $connector->get( "orders/{$muse_order_id}/overview" );
+			$response = $this->connector->get( "orders/{$muse_order_id}/overview" );
 
 			return $response;
 			
