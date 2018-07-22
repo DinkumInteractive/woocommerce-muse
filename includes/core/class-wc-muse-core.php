@@ -11,7 +11,6 @@
 class Wc_Muse_Core {
 
 	public function export_orders() {
-		return;
 
 		$wc_muse_orders = Wc_Muse_Orders::get_instance();
 

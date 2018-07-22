@@ -25,7 +25,7 @@ class Wc_Muse_Cron {
 	function __construct() {
 
 		$this->cron_enabled = ( get_option( 'wc-muse-enable_cron' ) === 'yes' );
-		$this->cron_interval = get_option( 'wc-muse-cron_in_minute' );
+		$this->cron_interval = get_option( 'wc-muse-cron_in_minute', 5 );
 
 	}
 
@@ -40,7 +40,7 @@ class Wc_Muse_Cron {
 				$interval = $interval <= 5 ? 5 : $interval;
 
 				$schedules[$this->schedule_recurrence] = array(
-					'interval'  => $this->cron_interval * 60, 
+					'interval'  => ($interval * 60), 
 					'display'   => __( sprintf( 'Send order every %s Minutes', $interval ), 'wc-muse' )
 				);
 
@@ -71,7 +71,8 @@ class Wc_Muse_Cron {
 
 			if ( isset( $schedules[$this->schedule_recurrence] ) ) {
 				//	Shedule event to run after the time set in settings page
-				wp_schedule_event ( time(), $this->schedule_recurrence, 'wc_muse_send_order' );
+				// wp_schedule_event ( time(), $this->schedule_recurrence, 'wc_muse_send_order' );
+				wp_schedule_event ( time(), 'hourly', 'wc_muse_send_order' );
 			} else {
 				//	Remove scheduled event if recurrense doesn't exists
 				wp_clear_scheduled_hook( 'wc_muse_send_order' );

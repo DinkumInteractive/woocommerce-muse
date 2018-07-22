@@ -95,6 +95,17 @@ if ( isset( $_POST ) ){
 <div class="wrap">
 	
 	<h1><?php _e( 'WooCommerce Muse Testing', 'wc-muse' ) ?></h1>
+
+	<!-- Change order status -->
+	<h2><?php _e( 'Export Orders to Muse', 'wc-muse' ) ?></h2>
+	<form method="post">
+		<input type="hidden" name="test_get_orders" value="1">
+		<button type="submit" class="button button-primary"><?php _e( 'Export all Orders to Muse', 'wc-muse' ) ?></button>
+	</form>
+
+
+	<hr>
+	<hr>
 	
 	<!-- Testing order -->
 	<h2><?php _e( 'Outbound Order', 'wc-muse' ) ?></h2>
@@ -117,13 +128,6 @@ if ( isset( $_POST ) ){
 	<form method="post">
 		<input type="hidden" name="test_change_order_status" value="1">
 		<p><input type="text" name="order_id"></p>
-		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
-	</form>
-	
-	<!-- Change order status -->
-	<h2><?php _e( 'Get orders to export', 'wc-muse' ) ?></h2>
-	<form method="post">
-		<input type="hidden" name="test_get_orders" value="1">
 		<button type="submit" class="button button-primary"><?php _e( 'Test', 'wc-muse' ) ?></button>
 	</form>
 	

@@ -110,7 +110,7 @@ class Wc_Muse_Orders {
 
 		$order = array(
 
-			'notes' => !empty( $customer_note ) ? sprintf( 'Customer Note: %s', $customer_note ) : '',
+			'notes' => !empty( $customer_note ) ? sprintf( 'Customer Note: %s', $customer_note ) : 'Empty Customer Note',
 
 			'admin_email' => get_option( 'wc-muse-admin_email' ),
 
@@ -120,7 +120,7 @@ class Wc_Muse_Orders {
 
 			'wp_order_id' => $wc_order->get_id(),
 
-			'profile' => $this->get_customer_profile( $wc_order->get_customer_id() ),
+			'profile' => $this->get_customer_profile( $wc_order ),
 			/*	Fields:
 				- first_name
 				- last_name
@@ -187,19 +187,26 @@ class Wc_Muse_Orders {
 
 	}
 
-	function get_customer_profile( $customer_id ) {
+	function get_customer_profile( $wc_order ) {
 
-		if ( ! $customer_id ) return false;
+		if ( $wc_order->get_customer_id() ) {
+			$customer = new WC_Customer($wc_order->get_customer_id());
 
-		$customer = new WC_Customer($customer_id);
-
-		$profile = array(
-			'first_name' => $customer->get_first_name(),
-			'last_name' => $customer->get_last_name(),
-			'email' => $customer->get_email(),
-			'legacy_id' => $customer->get_ID(),
-			'phone_number' => $customer->get_billing_phone(),
-		);
+			$profile = array(
+				'first_name' => $customer->get_first_name(),
+				'last_name' => $customer->get_last_name(),
+				'email' => $customer->get_email(),
+				'legacy_id' => $customer->get_ID(),
+				'phone_number' => $customer->get_billing_phone(),
+			);
+		} else {
+			$profile = array(
+				'first_name' => $wc_order->get_billing_first_name(),
+				'last_name' => $wc_order->get_billing_last_name(),
+				'email' => $wc_order->get_billing_email(),
+				'phone_number' => $wc_order->get_billing_phone(),
+			);
+		}
 
 		return $profile;
 
@@ -249,20 +256,37 @@ class Wc_Muse_Orders {
 					break;
 
 			}
-			$data = array(
-				'qty' => $order_item->get_quantity(),
-				'price' => $wc_order->get_item_subtotal( $order_item, false, false ),
-				'slug' => get_post_meta( $product_parent_id, 'item_slug', true ),
-				'type' => get_post_meta( $product_parent_id, 'ticket_type', true ),
-				'seat_slug' => get_post_meta( $product_id, 'seat_slug', true )
-			);
 
-			$order_items[] = $data;
+			$events = $this->get_event_slugs($product_parent_id);
+
+			if ( is_array($events) ) {
+				foreach ($events as $event_slug) {
+					$data = array(
+						'qty' => $order_item->get_quantity(),
+						'price' => $wc_order->get_item_subtotal( $order_item, false, false ),
+						'slug' => $event_slug,
+						'series' => get_post_meta( $product_parent_id, 'sub_item_slug', true ),
+						'type' => get_post_meta( $product_parent_id, 'ticket_type', true ),
+						'seat_slug' => get_post_meta( $product_id, 'seat_slug', true )
+					);
+
+					$order_items[] = $data;
+				}
+			}
 
 		}
 
 		return $order_items;
 
+	}
+
+	function get_event_slugs( $product_parent_id ) {
+		$event_slugs = trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
+		if ( $event_slugs ){
+			$event_slugs = array_map('trim', explode( ',', $event_slugs ));
+		}
+
+		return $event_slugs;
 	}
 
 	function get_order_payment( $wc_order ) {

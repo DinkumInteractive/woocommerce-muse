@@ -165,13 +165,6 @@ class Wc_Muse {
 		$cron = new Wc_Muse_Cron();
 		$core = new Wc_Muse_Core();
 
-		//	check if event scheduled before
-		$this->loader->add_action( 'wc_muse_send_order', $cron, 'send_order' );
-
-		$this->loader->add_filter( 'cron_schedules', $cron, 'add_cron_schedules' );
-
-		$this->loader->add_action( 'init', $cron, 'send_order_schedule' );
-
 		// if cron interval was saved
 		$this->loader->add_action( 'update_option_wc-muse-enable_cron', $cron, 'on_settings_saved', 10, 2 );
 		$this->loader->add_action( 'update_option_wc-muse-cron_in_minute', $cron, 'on_settings_saved', 10, 2 );
@@ -179,6 +172,13 @@ class Wc_Muse {
 		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'change_order_status', 10, 2 );
 		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'update_success_meta', 10, 2 );
 		$this->loader->add_action( 'wc_muse_order_export_failed', $core, 'update_failed_meta', 10, 2 );
+
+		//	check if event scheduled before
+		$this->loader->add_action( 'wc_muse_send_order', $cron, 'send_order' );
+
+		$this->loader->add_filter( 'cron_schedules', $cron, 'add_cron_schedules' );
+
+		$this->loader->add_action( 'init', $cron, 'send_order_schedule' );
 
 
 	}
