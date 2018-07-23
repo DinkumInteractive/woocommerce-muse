@@ -143,7 +143,7 @@ class Wc_Muse {
 		// $this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );
 
 		// 	Test Page
-		$this->loader->add_action( 'init', $plugin_admin, 'add_test_menu' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_test_menu' );
 
 	}
 
