@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class that manages all cron activities.
  *
- * @since      0.4.1
+ * @since      1.0.0
  */
 class Wc_Muse_Cron {
 
@@ -19,8 +19,7 @@ class Wc_Muse_Cron {
 	/**
 	 * Initialize the plugin.
 	 *
-	 * @since     0.4.1
-	 * @since     0.4.2 - Add wc version validation before using the logger class.
+	 * @since      1.0.0
 	 */
 	function __construct() {
 
@@ -31,24 +30,16 @@ class Wc_Muse_Cron {
 
 	public function add_cron_schedules( $schedules ) {
 
-		if ( $this->cron_enabled ) {
+		$interval = (int) $this->cron_interval;
 
-			$interval = (int) $this->cron_interval;
+		if ( $interval ) {
 
-			if ( $interval ) {
+			$interval = $interval <= 5 ? 5 : $interval;
 
-				$interval = $interval <= 5 ? 5 : $interval;
-
-				$schedules[$this->schedule_recurrence] = array(
-					'interval'  => ($interval * 60), 
-					'display'   => __( sprintf( 'Send order every %s Minutes', $interval ), 'wc-muse' )
-				);
-
-			}
-
-		} elseif ( ! $this->cron_enabled  && isset( $schedules[$this->schedule_recurrence] ) ) {
-
-			unset( $schedules[$this->schedule_recurrence] );
+			$schedules[$this->schedule_recurrence] = array(
+				'interval'  => ($interval * 60), 
+				'display'   => __( sprintf( 'Send order every %s Minutes', $interval ), 'wc-muse' )
+			);
 
 		}
 
@@ -64,25 +55,14 @@ class Wc_Muse_Cron {
 	 */
 	public function send_order_schedule() {
 
-		//	Check if event scheduled before
-		if ( $this->cron_enabled && ! wp_next_scheduled( 'wc_muse_send_order' ) ) {
+		if ( wp_next_scheduled( 'wc_muse_send_order' ) ) return;
 
-			$schedules = wp_get_schedules();
+		if ( ! $this->cron_enabled ) return;
 
-			if ( isset( $schedules[$this->schedule_recurrence] ) ) {
-				//	Shedule event to run after the time set in settings page
-				// wp_schedule_event ( time(), $this->schedule_recurrence, 'wc_muse_send_order' );
-				wp_schedule_event ( time(), 'hourly', 'wc_muse_send_order' );
-			} else {
-				//	Remove scheduled event if recurrense doesn't exists
-				wp_clear_scheduled_hook( 'wc_muse_send_order' );
-			}
+		$schedules = wp_get_schedules();
 
-		} elseif ( ! $this->cron_enabled && wp_next_scheduled( 'wc_muse_send_order' ) ) {
-
-			//	Remove scheduled event
-			$this->uneschedule_wc_muse_send_order();
-
+		if ( isset( $schedules[$this->schedule_recurrence] ) ) {
+			wp_schedule_event( time(), $this->schedule_recurrence, 'wc_muse_send_order' );
 		}
 
 	}
