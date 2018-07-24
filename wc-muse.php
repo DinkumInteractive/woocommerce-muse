@@ -123,3 +123,20 @@ function run_wc_muse() {
 }
 
 add_action( 'plugins_loaded', 'run_wc_muse' );
+
+/**
+ * Add plugin cron interval.
+ *
+ * @since    1.0.0
+ */
+if ( 'yes' === get_option( 'wc-muse-enable_cron' ) ) {
+
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-wc-muse-cron.php';
+
+	$cron = new Wc_Muse_Cron();
+
+	add_filter( 'cron_schedules', array( $cron, 'add_cron_schedules' ) );
+
+}
+
+
