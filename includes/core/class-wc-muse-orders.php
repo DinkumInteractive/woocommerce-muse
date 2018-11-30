@@ -106,11 +106,11 @@ class Wc_Muse_Orders {
      */
 	function convert_wc_order( $wc_order ){
 
-		$customer_note = $wc_order->get_customer_note();
+		$customer_note = apply_filters( 'wc_muse_order_customer_note', $wc_order->get_customer_note(), $wc_order );
 
 		$order = array(
 
-			'notes' => !empty( $customer_note ) ? sprintf( 'Customer Note: %s', $customer_note ) : 'Empty Customer Note',
+			'notes' => !empty( $customer_note ) ? sprintf( 'Customer note in the website: %s', $customer_note ) : 'Empty customer note in the website ',
 
 			'admin_email' => get_option( 'wc-muse-admin_email' ),
 
@@ -135,8 +135,9 @@ class Wc_Muse_Orders {
 				'first_line' => $wc_order->get_shipping_address_1(),
 				'second_line' => $wc_order->get_shipping_address_2(),
 				'city' => $wc_order->get_shipping_city(),
-				'state' => $wc_order->get_shipping_state(),
+				'state' => $this->get_state_name($wc_order->get_shipping_country(), $wc_order->get_shipping_state()),
 				'state_code' => $wc_order->get_shipping_state(),
+				'country_name' => $this->get_country_name($wc_order->get_shipping_country()),
 				'country_code' => $wc_order->get_shipping_country(),
 				'zip_code' => $wc_order->get_shipping_postcode(),
 			),
@@ -147,8 +148,9 @@ class Wc_Muse_Orders {
 				'first_line' => $wc_order->get_billing_address_1(),
 				'second_line' => $wc_order->get_billing_address_2(),
 				'city' => $wc_order->get_billing_city(),
-				'state' => $wc_order->get_billing_state(),
+				'state' => $this->get_state_name($wc_order->get_billing_country(), $wc_order->get_billing_state()),
 				'state_code' => $wc_order->get_billing_state(),
+				'country_name' => $this->get_country_name($wc_order->get_billing_country()),
 				'country_code' => $wc_order->get_billing_country(),
 				'zip_code' => $wc_order->get_billing_postcode(),
 			),
@@ -185,6 +187,20 @@ class Wc_Muse_Orders {
 
 		return apply_filters( 'wc_muse_order', $order );
 
+	}
+
+	function get_country_name($country_code) {
+		// Get all countries key/names in an array:
+		$countries = WC()->countries->get_countries();
+
+		return isset($countries[$country_code]) ? $countries[$country_code] : $country_code;
+	}
+
+	function get_state_name($country_code, $state_code) {
+		// Get all country states key/names in a multilevel array:
+		$country_states = WC()->countries->get_states();
+
+		return (isset($country_states[$country_code]) && isset($country_states[$country_code][$state_code])) ? $country_states[$country_code][$state_code] : $state_code;
 	}
 
 	function get_customer_profile( $wc_order ) {
@@ -257,7 +273,7 @@ class Wc_Muse_Orders {
 
 			}
 
-			$events = $this->get_event_slugs($product_parent_id);
+			$events = apply_filters( 'wc_muse_order_item_event_slugs', $this->get_event_slugs($product_parent_id), $product_parent_id, $order_item );
 
 			if ( is_array($events) ) {
 				foreach ($events as $event_slug) {
@@ -286,7 +302,7 @@ class Wc_Muse_Orders {
 			$event_slugs = array_map('trim', explode( ',', $event_slugs ));
 		}
 
-		return $event_slugs;
+		return apply_filters( 'wc_muse_order_event_slugs', $event_slugs, $product_parent_id, $wc_order );
 	}
 
 	function get_order_payment( $wc_order ) {
@@ -326,7 +342,7 @@ class Wc_Muse_Orders {
 
 		}
 
-		return apply_filters( 'wc_muse_order_fees', $order_fees );
+		return apply_filters( 'wc_muse_order_fees', $order_fees, $wc_order );
 
 	}
 
@@ -344,7 +360,7 @@ class Wc_Muse_Orders {
 
 		}
 
-		return apply_filters( 'wc_muse_order_total_fees', $order_fees );
+		return apply_filters( 'wc_muse_order_total_fees', $order_fees, $wc_order );
 
 	}
 

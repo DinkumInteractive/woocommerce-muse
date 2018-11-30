@@ -118,6 +118,8 @@ function run_wc_muse() {
 
 	$plugin = new Wc_Muse();
 
+	$plugin->init();
+
 	$plugin->run();
 
 }
@@ -131,12 +133,26 @@ add_action( 'plugins_loaded', 'run_wc_muse' );
  */
 if ( 'yes' === get_option( 'wc-muse-enable_cron' ) ) {
 
+	require_once plugin_dir_path( __FILE__ ) . 'includes/core/class-wc-muse-core.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-wc-muse-cron.php';
 
 	$cron = new Wc_Muse_Cron();
+	$core = new Wc_Muse_Core();
 
 	add_filter( 'cron_schedules', array( $cron, 'add_cron_schedules' ) );
+	add_action( 'wc_muse_order_export_success', array( $core, 'change_order_status' ), 10, 2 );
+  add_action( 'wc_muse_order_export_success', array( $core, 'update_success_meta' ), 10, 2 );
+  add_action( 'wc_muse_order_export_failed', array( $core, 'update_failed_meta' ), 10, 2 );
 
+	//	Add cron event to queue.
+	$cron->add_cron_schedule();
+	
 }
 
+add_action( 'wc_muse_cron_events', 'run_wc_muse_cron_events' );
 
+function run_wc_muse_cron_events() {
+	$plugin = new Wc_Muse();
+	$plugin->load_dependencies();
+	Wc_Muse_Core::export_orders();
+}

@@ -46,6 +46,14 @@ class Wc_Muse {
 	public function __construct() {
 		$this->version = WC_MUSE_VERSION;
 		$this->plugin_name = 'wc-muse';
+	}
+
+	/**
+	 * Define the core functionality of the plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function init() {
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
@@ -58,7 +66,7 @@ class Wc_Muse {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function load_dependencies() {
+	public function load_dependencies() {
 
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
@@ -163,21 +171,10 @@ class Wc_Muse {
 
 		// Cron
 		$cron = new Wc_Muse_Cron();
-		$core = new Wc_Muse_Core();
 
 		// if cron interval was saved
 		$this->loader->add_action( 'update_option_wc-muse-enable_cron', $cron, 'on_settings_saved', 99, 2 );
 		$this->loader->add_action( 'update_option_wc-muse-cron_in_minute', $cron, 'on_settings_saved', 10, 2 );
-		$this->loader->add_action( 'wc_muse_cron_send_order', $core, 'export_orders' );
-		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'change_order_status', 10, 2 );
-		$this->loader->add_action( 'wc_muse_order_export_success', $core, 'update_success_meta', 10, 2 );
-		$this->loader->add_action( 'wc_muse_order_export_failed', $core, 'update_failed_meta', 10, 2 );
-
-		//	Send order action
-		$this->loader->add_action( 'wc_muse_send_order', $cron, 'send_order' );
-
-		//	Add cron event to queue.
-		$cron->send_order_schedule();
 
 	}
 

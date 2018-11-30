@@ -60,6 +60,8 @@ class Wc_Muse_Core {
 
 		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', true );
 
+		$response = json_decode( $response );
+
 		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_id', 
 			( isset( $response->id ) ? $response->id : sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ) ) 
 		);
@@ -74,6 +76,26 @@ class Wc_Muse_Core {
 		}
 
 		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_failed', $response );
+
+	}
+
+	public static function test_cron_run($title=false) {
+
+		/*
+		*/
+		ob_start();
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+		var_dump($wc_muse_orders);
+		$content = ob_get_clean();
+
+		$title = ($title?$title:'test');
+
+		$postarr = array(
+			'post_title' => $title,
+			'post_content' => $content,
+		);
+
+		wp_insert_post( $postarr );
 
 	}
 

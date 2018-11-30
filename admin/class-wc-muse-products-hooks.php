@@ -95,6 +95,7 @@ class Wc_Muse_Products_Hook {
 		update_post_meta( $post_id, 'item_slug', sanitize_text_field( $_POST['item_slug'] ) );
 		update_post_meta( $post_id, 'ticket_type', sanitize_text_field( $_POST['ticket_type'] ) );
 		update_post_meta( $post_id, 'sub_item_slug', sanitize_text_field( $_POST['sub_item_slug'] ) );
+		update_post_meta( $post_id, 'seat_slug', sanitize_text_field( $_POST['seat_slug'] ) );
 
 		//	Reattach hook
 		add_action( 'save_post_product', array( $this, 'save_post_meta' ), 0, 3 );
