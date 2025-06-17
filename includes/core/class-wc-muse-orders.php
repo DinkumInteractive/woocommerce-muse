@@ -31,8 +31,8 @@ class Wc_Muse_Orders {
 
 		$this->connector = new Wc_Muse_Connector();
 
-		$this->connector->set_debug( true );
-	
+		$this->connector->set_debug( 'yes' === get_option( 'options_debug_muse_order_handler' ) );
+
 	}
 
 	/**
@@ -104,21 +104,21 @@ class Wc_Muse_Orders {
      * Convert WC order into json
      * @return void
      */
-	function convert_wc_order( $wc_order ){
-
-		$customer_note = apply_filters( 'wc_muse_order_customer_note', $wc_order->get_customer_note(), $wc_order );
+	public function convert_wc_order( $wc_order ){
 
 		$order = array(
 
-			'notes' => !empty( $customer_note ) ? sprintf( 'Customer note in the website: %s', $customer_note ) : 'Empty customer note in the website ',
+			'notes' => $this->get_order_notes( $wc_order ),
 
-			'admin_email' => get_option( 'wc-muse-admin_email' ),
+			'admin_email' => $this->connector->admin_email,
 
-			'tags' => get_option( 'wc-muse-order_tags' ),
+			'tags' => apply_filters( 'wc_muse_order_tags', get_option( 'wc-muse-order_tags' ), $wc_order ),
 
 			'legacy_order_id' => $wc_order->get_order_number(),
 
 			'wp_order_id' => $wc_order->get_id(),
+
+			'will_call' => apply_filters( 'wc_muse_order_will_call', false, $wc_order ),
 
 			'profile' => $this->get_customer_profile( $wc_order ),
 			/*	Fields:
@@ -134,8 +134,8 @@ class Wc_Muse_Orders {
 				'last_name' => $wc_order->get_shipping_last_name(),
 				'first_line' => $wc_order->get_shipping_address_1(),
 				'second_line' => $wc_order->get_shipping_address_2(),
-				'city' => $wc_order->get_shipping_city(),
-				'state' => $this->get_state_name($wc_order->get_shipping_country(), $wc_order->get_shipping_state()),
+				'city' => $this->capitalize_text($wc_order->get_shipping_city()),
+				'state' => $this->capitalize_text($this->get_state_name($wc_order->get_shipping_country(), $wc_order->get_shipping_state())),
 				'state_code' => $wc_order->get_shipping_state(),
 				'country_name' => $this->get_country_name($wc_order->get_shipping_country()),
 				'country_code' => $wc_order->get_shipping_country(),
@@ -147,8 +147,8 @@ class Wc_Muse_Orders {
 				'last_name' => $wc_order->get_billing_last_name(),
 				'first_line' => $wc_order->get_billing_address_1(),
 				'second_line' => $wc_order->get_billing_address_2(),
-				'city' => $wc_order->get_billing_city(),
-				'state' => $this->get_state_name($wc_order->get_billing_country(), $wc_order->get_billing_state()),
+				'city' => $this->capitalize_text($wc_order->get_billing_city()),
+				'state' => $this->capitalize_text($this->get_state_name($wc_order->get_billing_country(), $wc_order->get_billing_state())),
 				'state_code' => $wc_order->get_billing_state(),
 				'country_name' => $this->get_country_name($wc_order->get_billing_country()),
 				'country_code' => $wc_order->get_billing_country(),
@@ -160,7 +160,7 @@ class Wc_Muse_Orders {
 			'fees' => $this->get_order_fees( $wc_order ),
 
 			'totals' => array(
-				'subtotal' => $wc_order->get_subtotal(), 
+				'subtotal' => $wc_order->get_subtotal(),
 				'total' => $wc_order->get_total(),
 				'discount' => $wc_order->get_total_discount(),
 				'shipping' => $wc_order->get_shipping_total(),
@@ -187,6 +187,68 @@ class Wc_Muse_Orders {
 
 		return apply_filters( 'wc_muse_order', $order );
 
+	}
+
+	function capitalize_text($text) {
+		return ucwords(strtolower($text));
+	}
+
+	function get_order_notes( $wc_order ) {
+
+		$order_note = '';
+
+		// Add customer note.
+		$customer_note = apply_filters( 'wc_muse_order_customer_note', $wc_order->get_customer_note(), $wc_order );
+
+		$order_note .= ! empty( $customer_note ) ? sprintf( 'Customer note in the website: %s.', $customer_note ) : 'Empty customer note in the website. ';
+
+		// Add excluded item note if applicable.
+		$items             = $wc_order->get_items();
+		$excluded_products = get_option( 'options_wc_muse_excluded_products' );
+		$found_products    = array();
+
+		if ( $items && $excluded_products ) {
+
+			foreach ( $items as $i => $order_item ) {
+
+				$product    = $order_item->get_product();
+				$product_id = $product->get_id();
+
+				switch ( $product->get_type() ) {
+
+					case 'simple':
+						$product_parent_id = $product->get_id();
+						break;
+
+					case 'variation':
+						$product_parent_id = $product->get_parent_id();
+						break;
+
+				}
+
+				if (
+					$excluded_products &&
+						(
+							in_array( $product_id, $excluded_products ) ||
+							in_array( $product_parent_id, $excluded_products )
+						)
+				) {
+
+					$found_products[] = wp_sprintf(
+						'%s%s',
+						( 'variation' === $product->get_type() ? "$product_parent_id - " : '' ),
+						$product_id
+					);
+				}
+			}
+
+			if ( $found_products ) {
+
+				$order_note .= wp_sprintf( 'Excluded products: %s. ', implode( ', ', $found_products ) );
+			}
+		}
+
+		return $order_note;
 	}
 
 	function get_country_name($country_code) {
@@ -230,16 +292,16 @@ class Wc_Muse_Orders {
 
 	function get_order_coupons( $wc_order ) {
 
-		$coupons = $wc_order->get_used_coupons();
+		$coupons = $wc_order->get_coupon_codes();
 
 		$order_coupons = array();
 
 		foreach ($coupons as $i => $code) {
 
 			$coupon = new WC_Coupon($code);
-			
+
 			$order_coupons[] = array(
-				'name' => $code, 
+				'name' => $code,
 				'discount_amount' => $coupon->get_amount(),
 			);
 
@@ -255,15 +317,23 @@ class Wc_Muse_Orders {
 
 		$order_items = array();
 
-		foreach ($items as $i => $order_item) {
+		$excluded_products = get_option( 'options_wc_muse_excluded_products' );
+
+		foreach ( $items as $i => $order_item ) {
 
 			$product = $order_item->get_product();
 
 			$product_id = $product->get_id();
 
+			if ( $excluded_products && in_array( $product_id, $excluded_products ) ) {
+
+				continue;
+			}
+
 			switch ( $product->get_type() ) {
 
 				case 'simple':
+				case 'variable':
 					$product_parent_id = $product->get_id();
 					break;
 
@@ -273,17 +343,22 @@ class Wc_Muse_Orders {
 
 			}
 
-			$events = apply_filters( 'wc_muse_order_item_event_slugs', $this->get_event_slugs($product_parent_id), $product_parent_id, $order_item );
+			if ( $excluded_products && in_array( $product_parent_id, $excluded_products ) ) {
 
-			if ( is_array($events) ) {
-				foreach ($events as $event_slug) {
+				continue;
+			}
+
+			$events = apply_filters( 'wc_muse_order_item_event_slugs', $this->get_event_slugs($product_parent_id, $product_id, $order_item, $product), $product_parent_id, $order_item );
+
+			if ( is_array( $events ) ) {
+				foreach ($events as $event) {
 					$data = array(
 						'qty' => $order_item->get_quantity(),
 						'price' => $wc_order->get_item_subtotal( $order_item, false, false ),
-						'slug' => $event_slug,
-						'series' => get_post_meta( $product_parent_id, 'sub_item_slug', true ),
-						'type' => get_post_meta( $product_parent_id, 'ticket_type', true ),
-						'seat_slug' => get_post_meta( $product_id, 'seat_slug', true )
+						'slug' => $event['slug'],
+						'series' => $event['series_slug'],
+						'seat_slug' => $event['seat_slug'],
+						'type' => get_post_meta( $product_parent_id, 'ticket_type', true )
 					);
 
 					$order_items[] = $data;
@@ -296,13 +371,78 @@ class Wc_Muse_Orders {
 
 	}
 
-	function get_event_slugs( $product_parent_id ) {
-		$event_slugs = trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
-		if ( $event_slugs ){
-			$event_slugs = array_map('trim', explode( ',', $event_slugs ));
+	public function get_event_series($product_parent_id, $product_id) {
+		if ($product_parent_id != $product_id) {
+			$variation_series = get_post_meta( $product_id, 'sub_item_slug', true );
+		}
+		$product_series = get_post_meta( $product_parent_id, 'sub_item_slug', true );
+		return !empty($variation_series) ? $variation_series : $product_series;
+	}
+
+	public function get_event_slugs( $product_parent_id, $product_id, $order_item, $product ) {
+		$product_type = get_post_meta( $product_parent_id, 'ticket_type', true );
+		$event_slugs = [];
+		$concert_slug = '';
+			/* =========== add the validation && $product->get_type() != 'variation' to SUPPORT OLDER SUBSCRIPTIONS IN MARLBORO */
+		// if ( $product_type == 'serie' ) {
+		if ( $product_type == 'serie' && $product->get_type() != 'variation' ) {
+			foreach ($order_item->get_meta_data() as $wc_meta) {
+				if ($wc_meta->key == '_woocommerce_event_id') {
+					// Get Muse Series slug from the season pass product that was added to the cart
+					$series_slug = $this->get_event_series($product_parent_id, $product_id);
+
+					// Get Muse slug from the product
+					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
+					// Get Muse seat slug from the product
+					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
+					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+				}
+			}
+		}
+		elseif( $product_type == 'season-pass' ) {
+			foreach ($order_item->get_meta_data() as $wc_meta) {
+				if ($wc_meta->key == '_woocommerce_event_id') {
+					// Get Muse Series slug from the season pass product that was added to the cart
+					$series_slug = $this->get_event_series($product_parent_id, $product_id);
+
+					// Get Muse slug from the product
+					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
+					// Get Muse seat slug from the product
+					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
+					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+				}
+			}
+		}
+		else {
+			$concert_slug 	= trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
+			$series_slug 	= trim( get_post_meta( $product_parent_id, 'sub_item_slug', true ) );
+			$seat_slug 		= trim( get_post_meta( $product_parent_id, 'seat_slug', true ) );
+			switch ( $product->get_type() ) {
+
+				// case 'simple':
+				// 	break;
+
+				case 'variation':
+				case 'variable':
+					$variation_concert_slug = trim( get_post_meta( $product_id, 'item_slug', true ) );
+					$variation_series_slug = trim( get_post_meta( $product_id, 'sub_item_slug', true ) );
+					$variation_seat_slug = trim( get_post_meta( $product_id, 'seat_slug', true ) );
+
+					$concert_slug 	= !empty($variation_concert_slug) ? $variation_concert_slug : $concert_slug;
+					$series_slug 	= !empty($variation_series_slug) ? $variation_series_slug : $series_slug;
+					$seat_slug 		= !empty($variation_seat_slug) ? $variation_seat_slug : $seat_slug;
+
+					break;
+
+			}
+			if ( $concert_slug ) {
+				foreach (array_map('trim', explode( ',', $concert_slug )) as $slug) {
+					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+				};
+			}
 		}
 
-		return apply_filters( 'wc_muse_order_event_slugs', $event_slugs, $product_parent_id, $wc_order );
+		return apply_filters( 'wc_muse_order_event_slugs', $event_slugs, $product_parent_id, $product_id, $order_item, $product );
 	}
 
 	function get_order_payment( $wc_order ) {
@@ -312,7 +452,7 @@ class Wc_Muse_Orders {
 		$payment_data = $payment_manager->get_data();
 
 		/*$payment_data = array(
-			'last_4' => '', 
+			'last_4' => '',
 			'card_type' => '',
 			'cardholder_name' => '',
 			'expiration_month' => '',
@@ -335,7 +475,7 @@ class Wc_Muse_Orders {
 		if ( $fees = $wc_order->get_fees() ) {
 
 			foreach ( $fees as $fee ) {
-				
+
 				$order_fees[] = array( 'name' => $fee->get_name(), 'amount' => $fee->get_total() );
 
 			}
@@ -380,44 +520,83 @@ class Wc_Muse_Orders {
 
 	public function export_order( $wc_order ) {
 
-		try {
+		$response = false;
 
-			$organization_id = $this->connector->organization_id;
+		$organization_id = $this->connector->organization_id;
 
-			$content = array( 'order_data' => $this->convert_wc_order( $wc_order ) );
+		$order_data = $this->convert_wc_order( $wc_order );
 
-			$response = $this->connector->post( "integrations/{$organization_id}/orders", $content );
+		if ( isset( $order_data['order_items'] ) && $order_data['order_items'] ) {
 
-			do_action( 'wc_muse_order_export_success', $wc_order, $response );
+			try {
 
-			return $response;
-			
-		} catch ( Exception $e ) {
-			
-			do_action( 'wc_muse_order_export_failed', $wc_order, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
+				$content = array( 'order_data' => $order_data );
 
-			return false;
+				$response = $this->connector->post( "integrations/{$organization_id}/orders", $content );
 
+				do_action( 'wc_muse_order_export_success', $wc_order, $response );
+
+			} catch ( Exception $e ) {
+
+				$to = get_option( 'wc-muse-report_email' );
+				$subject = sprintf( 'Export order failed - Order #%s', $wc_order->get_id() );
+				$message = sprintf( 'Unexpected response when exporting order <a href="%s">#%s</a>', get_edit_post_link( $wc_order->get_id() ), $wc_order->get_id() );
+				$muse_mail = new Wc_Muse_Mail( $to, $subject, $message );
+				$muse_mail->send();
+
+				do_action( 'wc_muse_order_export_failed', $wc_order, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
+
+				$response = $e;
+			}
 		}
 
+		return $response;
 	}
 
 	public function get_muse_order( $muse_order_id ) {
 
 		try {
 
-			$response = $this->connector->get( "orders/{$muse_order_id}/overview" );
+			$muse_order_id = sanitize_text_field( $muse_order_id );
+
+			$organization_id = $this->connector->organization_id;
+
+			$response = $this->connector->get( "integrations/{$organization_id}/orders/{$muse_order_id}" );
 
 			return $response;
-			
+
 		} catch ( Exception $e ) {
-			
-			do_action( 'wc_muse_order_read_failed', $wc_order, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
+
+			do_action( 'wc_muse_order_read_failed', $muse_order_id, array( 'code' => $e->getCode(), 'message' => $e->getMessage() ) );
 
 			return false;
+		}
+	}
 
+	public function get_order_by_muse_order_id( $muse_order_id ) {
+
+		$query = new WC_Order_Query( array(
+			'limit' => 1,
+			'meta_key' => '_wc_muse_order_id',
+			'meta_value' => $muse_order_id,
+		) );
+
+		$orders = $query->get_orders();
+
+		if ( $orders )
+			return $orders[0];
+
+		return $orders;
+	}
+
+	public function is_valid_id( $id ) {
+
+		if (!is_string($id) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $id) !== 1)) {
+
+			return false;
 		}
 
+		return true;
 	}
 
 }

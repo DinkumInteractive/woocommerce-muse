@@ -27,6 +27,13 @@ if ( ! defined( 'WPINC' ) ) die;
  * Current plugin version.
  */
 define( 'WC_MUSE_VERSION', '1.0.0' );
+define( 'AJAX_NONCE_MUSE_CUSTOMER_INFO', 'nonce_muse_customer_info');
+define( 'WC_MUSE_DUMMY_QR_URL', plugin_dir_url( __FILE__ ) . 'public/img/qr.png');
+define( 'WC_MUSE_CUSTOM_FIELDS_DIR', plugin_dir_path( __FILE__ ) . 'custom-fields');
+define( 'WC_MUSE_TEMPLATE_DIR', plugin_dir_path( __FILE__ ) . 'public/template/woocommerce/');
+define( 'WC_MUSE_PUBLIC_JS_URI', plugin_dir_url( __FILE__ ) . 'public/js');
+define( 'WC_MUSE_PUBLIC_CSS_URI', plugin_dir_url( __FILE__ ) . 'public/css');
+define( 'WC_MUSE_PUBLIC_IMG_URI', plugin_dir_url( __FILE__ ) . 'public/img');
 
 /**
  * The code that runs during plugin activation.
@@ -61,7 +68,7 @@ function wc_muse_woocommerce_missing() {
 	//	WooCommerce is missing.
 	if ( 
 		// 	Require WooCommerce
-		is_admin() && in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) &&
+		in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) &&
 		// 	Require WooCommerce 3+
 		defined( 'WOOCOMMERCE_VERSION' ) && version_compare( WOOCOMMERCE_VERSION, '3.0.0', '>=' )
 	) {
@@ -140,9 +147,12 @@ if ( 'yes' === get_option( 'wc-muse-enable_cron' ) ) {
 	$core = new Wc_Muse_Core();
 
 	add_filter( 'cron_schedules', array( $cron, 'add_cron_schedules' ) );
-	add_action( 'wc_muse_order_export_success', array( $core, 'change_order_status' ), 10, 2 );
-  add_action( 'wc_muse_order_export_success', array( $core, 'update_success_meta' ), 10, 2 );
-  add_action( 'wc_muse_order_export_failed', array( $core, 'update_failed_meta' ), 10, 2 );
+
+	add_action( 'wc_muse_order_export_success', array( $core, 'change_order_status_success' ), 10, 2 );
+	add_action( 'wc_muse_order_export_success', array( $core, 'update_success_meta' ), 10, 2 );
+
+	add_action( 'wc_muse_order_export_failed', array( $core, 'change_order_status_failed' ), 10, 2 );
+	// add_action( 'wc_muse_order_export_failed', array( $core, 'update_failed_meta' ), 10, 2 );
 
 	//	Add cron event to queue.
 	$cron->add_cron_schedule();

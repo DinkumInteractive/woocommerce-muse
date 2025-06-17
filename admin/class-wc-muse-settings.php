@@ -35,28 +35,75 @@ class Wc_Muse_Settings {
 				'id'       => 'wc-muse-enable_sync',
 			),
 
+			'environment' => array(
+				'name'     => __( 'Environment', 'wc-muse' ),
+				'type'     => 'select',
+				'default'  => 'sandbox',
+				'options'  => array(
+					'sandbox' => __( 'Sandbox', 'wc-muse' ),
+					'production' => __( 'Production', 'wc-muse' ),
+				),
+				'id'       => 'wc-muse-environment',
+			),
+
 			'api_url' => array(
 				'name'     => __( 'API URL', 'wc-muse' ),
 				'type'     => 'text',
+				'class'    => 'environment-production toggleable-environment',
 				'id'       => 'wc-muse-api_url',
 			),
 
 			'auth_token' => array(
 				'name'     => __( 'Auth Token', 'wc-muse' ),
 				'type'     => 'text',
+				'class'    => 'environment-production toggleable-environment',
 				'id'       => 'wc-muse-auth_token',
 			),
 
 			'org_id' => array(
 				'name'     => __( 'Organization ID', 'wc-muse' ),
 				'type'     => 'text',
+				'class'    => 'environment-production toggleable-environment',
 				'id'       => 'wc-muse-org_id',
+			),
+
+			'sandbox_api_url' => array(
+				'name'     => __( 'API URL', 'wc-muse' ),
+				'type'     => 'text',
+				'class'    => 'environment-sandbox toggleable-environment',
+				'id'       => 'wc-muse-sandbox_api_url',
+			),
+
+			'sandbox_auth_token' => array(
+				'name'     => __( 'Auth Token', 'wc-muse' ),
+				'type'     => 'text',
+				'class'    => 'environment-sandbox toggleable-environment',
+				'id'       => 'wc-muse-sandbox_auth_token',
+			),
+
+			'sandbox_org_id' => array(
+				'name'     => __( 'Organization ID', 'wc-muse' ),
+				'type'     => 'text',
+				'class'    => 'environment-sandbox toggleable-environment',
+				'id'       => 'wc-muse-sandbox_org_id',
+			),
+
+			'payment_gateway_id' => array(
+				'name'     => __( 'Payment gateway ID', 'wc-muse' ),
+				'type'     => 'text',
+				'id'       => 'wc-muse-payment_gateway_id',
 			),
 
 			'admin_email' => array(
 				'name'     => __( 'Admin email', 'wc-muse' ),
 				'type'     => 'text',
 				'id'       => 'wc-muse-admin_email',
+			),
+
+			'report_email' => array(
+				'name'     => __( 'Report email', 'wc-muse' ),
+				'type'     => 'text',
+				'id'       => 'wc-muse-report_email',
 			),
 
 			'section_general_end' => array(
@@ -101,11 +148,19 @@ class Wc_Muse_Settings {
 			),
 
 			'order_status_processed' => array(
-				'name'     => __( 'Order status to set', 'wc-muse' ),
+				'name'     => __( 'Order sync - Success', 'wc-muse' ),
 				'type'     => 'select',
 				'default'  => '',
 				'options'  => wc_get_order_statuses(),
 				'id'       => 'wc-muse-order_status_processed',
+			),
+
+			'order_status_failed' => array(
+				'name'     => __( 'Order sync - Failed', 'wc-muse' ),
+				'type'     => 'select',
+				'default'  => '',
+				'options'  => wc_get_order_statuses(),
+				'id'       => 'wc-muse-order_status_failed',
 			),
 
 			'order_status_included' => array(
@@ -117,6 +172,51 @@ class Wc_Muse_Settings {
 			),
 
 			'section_orders_end' => array(
+				'type'     => 'sectionend',
+			),
+
+			'section_debug' => array(
+				'name'     => __( 'Debug Settings', 'wc-muse' ),
+				'type'     => 'title',
+				'id'       => 'wc-muse-section-sync',
+			),
+
+			'debug_muse_customer_handler' => array(
+				'name'     => __( 'Customer Handler', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'options_debug_muse_customer_handler',
+			),
+
+			'debug_muse_order_handler' => array(
+				'name'     => __( 'Order Handler', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'options_debug_muse_order_handler',
+			),
+
+			'debug_muse_ticket_handler' => array(
+				'name'     => __( 'Ticket Handler', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'options_debug_muse_ticket_handler',
+			),
+
+			'debug_muse_cc_handler' => array(
+				'name'     => __( 'Credit Card Handler', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'options_debug_muse_cc_handler',
+			),
+
+			'debug_muse_global_request' => array(
+				'name'     => __( 'Global Stop', 'wc-muse' ),
+				'type'     => 'checkbox',
+				'default'  => 'no',
+				'id'       => 'options_debug_muse_global_request',
+			),
+
+			'section_debug_end' => array(
 				'type'     => 'sectionend',
 			),
 

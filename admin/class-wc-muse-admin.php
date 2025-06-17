@@ -166,4 +166,26 @@ class Wc_Muse_Admin {
 
 	}
 
+	/**
+	 * Manages admin user hook.
+	 * 
+	 */
+	public function define_user_hooks() {
+
+
+		global $pagenow;
+
+
+		$admin_user_hook_handler = new Wc_Muse_Admin_User_Hooks();
+
+
+		$this->loader->add_action( 'restrict_manage_users', $admin_user_hook_handler, 'add_muse_id_section_filter', 10 );
+		$this->loader->add_filter( 'pre_get_users', $admin_user_hook_handler, 'filter_users_by_muse_id_section', 10 );
+
+
+		// 	run all hooks
+		if ( is_admin() && 'users.php' === $pagenow )
+			$this->loader->run();
+	}
+
 }

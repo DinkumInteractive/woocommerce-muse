@@ -22,6 +22,13 @@
  */
 class Wc_Muse_Public {
 
+	public $dir = array(
+		'css_dir_uri'         => '',
+		'js_dir_uri'          => '',
+		'styles_to_override'  => '',
+		'scripts_to_override' => '',
+	);
+
 	/**
 	 * The ID of this plugin.
 	 *
@@ -44,60 +51,88 @@ class Wc_Muse_Public {
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
-	 * @param      string    $plugin_name       The name of the plugin.
-	 * @param      string    $version    The version of this plugin.
+	 * @param      string $plugin_name       The name of the plugin.
+	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
 
 		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+		$this->version     = $version;
+
+		// Setup style settings
+		$this->dir['css_dir_uri']        = WC_MUSE_PUBLIC_CSS_URI;
+		$this->dir['styles_to_override'] = array( 'wp-style' );
+
+		// Setup scripts settings
+		$this->dir['js_dir_uri']          = WC_MUSE_PUBLIC_JS_URI;
+		$this->dir['scripts_to_override'] = array( 'global' );
+	}
+
+	public function register_scripts() {
+
+		// Styles
+		$css_dir_uri      = $this->dir['css_dir_uri'];
+		$css_dependencies = $this->dir['styles_to_override'];
+
+		wp_register_style( 'woo-account-pages-style', "$css_dir_uri/woo-account-style.css", $css_dependencies, '1.0.1', 'all' );
+
+		// Scripts
+		$js_dir_uri      = $this->dir['js_dir_uri'];
+		$js_dependencies = $this->dir['scripts_to_override'];
+
+		wp_register_script( 'woo-account-pages-scripts', "$js_dir_uri/woo-account-scripts.js", $js_dependencies, '1.0.0', true );
 
 	}
 
-	/**
-	 * Register the stylesheets for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Wc_Muse_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Wc_Muse_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wc-muse-public.css', array(), $this->version, 'all' );
-
-	}
-
-	/**
-	 * Register the JavaScript for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Wc_Muse_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Wc_Muse_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+		if ( ! is_account_page() ) {
+			return false;
+		}
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wc-muse-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_style( 'woo-account-pages-style' );
+		wp_enqueue_script( 'woo-account-pages-scripts' );
+
+		wp_localize_script(
+			'woo-account-pages-scripts',
+			'woo_account',
+			apply_filters( 'woo-account-localize-script', array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) )
+		);
 
 	}
 
+	/**
+	 * Use template in this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function woocommerce_locate_template( $template, $template_name, $template_path ) {
+
+		global $woocommerce;
+
+		$_template = $template;
+
+		if ( ! $template_path ) {
+			$template_path = $woocommerce->template_url;
+		}
+
+		$plugin_path = WC_MUSE_TEMPLATE_DIR;
+
+		$template = locate_template(
+			array(
+				$template_path . $template_name,
+				$template_name,
+			)
+		);
+
+		if ( ! $template && file_exists( $plugin_path . $template_name ) ) {
+			$template = $plugin_path . $template_name;
+		}
+
+		if ( ! $template ) {
+			$template = $_template;
+		}
+
+		return $template;
+	}
 }

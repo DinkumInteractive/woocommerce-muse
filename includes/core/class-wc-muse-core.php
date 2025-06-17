@@ -23,7 +23,7 @@ class Wc_Muse_Core {
 			if ( ! $orders ) break;
 
 			foreach ( $orders as $order ) {
-				
+
 				$export[] = $wc_muse_orders->export_order( $order );
 
 			}
@@ -36,15 +36,22 @@ class Wc_Muse_Core {
 
 	}
 
-	public function change_order_status( $wc_muse_order ) {
+	public function change_order_status_success( $wc_muse_order ) {
 
 		$wc_muse_orders = Wc_Muse_Orders::get_instance();
 
-		// TODO: we need this as an input setting to define it in wp admin
 		$new_status = get_option( 'wc-muse-order_status_processed' );
 
 		$wc_muse_orders->update_status( $wc_muse_order, $new_status );
+	}
 
+	public function change_order_status_failed( $wc_muse_order ) {
+
+		$wc_muse_orders = Wc_Muse_Orders::get_instance();
+
+		$new_status = get_option( 'wc-muse-order_status_failed' );
+
+		$wc_muse_orders->update_status( $wc_muse_order, $new_status );
 	}
 
 	public function update_success_meta( $wc_muse_order, $response ) {
@@ -58,14 +65,19 @@ class Wc_Muse_Core {
 			wc_get_logger()->error( sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ), array( 'source' => 'woocommerce-muse' ) );
 		}
 
-		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', true );
+		if ( isset( $response->id ) ) {
 
-		$response = json_decode( $response );
+			update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', true );
 
-		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_id', 
-			( isset( $response->id ) ? $response->id : sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ) ) 
-		);
+			update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_id', sanitize_text_field( $response->id ) );
 
+		} else {
+
+			$this->change_order_status_failed( $wc_muse_order );
+
+			// update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_success', false );
+			// update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_id', sprintf( 'Response object does not have attribute `id`: %s', serialize( $wc_muse_order ) ) );
+		}
 	}
 
 	public function update_failed_meta( $wc_muse_order, $response ) {
@@ -76,7 +88,6 @@ class Wc_Muse_Core {
 		}
 
 		update_post_meta( $wc_muse_order->get_id(), '_wc_muse_order_export_failed', $response );
-
 	}
 
 	public static function test_cron_run($title=false) {

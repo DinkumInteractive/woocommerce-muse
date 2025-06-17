@@ -1,32 +1,16 @@
-(function( $ ) {
-	'use strict';
+jQuery(document).ready(function($) {
+	if ( ! $( 'body' ).hasClass( 'woocommerce_page_wc-settings' ) ) return false;
 
-	/**
-	 * All of the code for your admin-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+	const showSelectedEnvironmentFields = function() {
+		const env = $( '#wc-muse-environment' ).val();
+		$( '.toggleable-environment' ).parents( 'tr' ).hide();
+		$( '.toggleable-environment.environment-' + env ).parents( 'tr' ).show();
+	}
 
-})( jQuery );
+	showSelectedEnvironmentFields();
+
+	$( '#wc-muse-environment' ).on( 'change', function() {
+		showSelectedEnvironmentFields();
+	} );
+
+});
