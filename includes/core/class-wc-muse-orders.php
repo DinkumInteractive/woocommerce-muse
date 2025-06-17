@@ -358,7 +358,8 @@ class Wc_Muse_Orders {
 						'slug' => $event['slug'],
 						'series' => $event['series_slug'],
 						'seat_slug' => $event['seat_slug'],
-						'type' => get_post_meta( $product_parent_id, 'ticket_type', true )
+						'seat_id' => $event['seat_id'],
+						'section_type' => $event['section_type']
 					);
 
 					$order_items[] = $data;
@@ -383,7 +384,8 @@ class Wc_Muse_Orders {
 		$product_type = get_post_meta( $product_parent_id, 'ticket_type', true );
 		$event_slugs = [];
 		$concert_slug = '';
-			/* =========== add the validation && $product->get_type() != 'variation' to SUPPORT OLDER SUBSCRIPTIONS IN MARLBORO */
+		$seat_id = '';
+		/* =========== add the validation && $product->get_type() != 'variation' to SUPPORT OLDER SUBSCRIPTIONS IN MARLBORO */
 		// if ( $product_type == 'serie' ) {
 		if ( $product_type == 'serie' && $product->get_type() != 'variation' ) {
 			foreach ($order_item->get_meta_data() as $wc_meta) {
@@ -395,7 +397,15 @@ class Wc_Muse_Orders {
 					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
 					// Get Muse seat slug from the product
 					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+					// Get Muse seat ID from the product
+					$seat_id = trim( get_post_meta( $wc_meta->value, 'seat_id', true ) );
+					$event_slugs[] = [
+						'slug' => $slug,
+						'seat_slug' => $seat_slug,
+						'series_slug' => $series_slug,
+						'seat_id' => $seat_id,
+						'type' => get_post_meta( $product_parent_id, 'section_type', true )
+					];
 				}
 			}
 		}
@@ -409,14 +419,34 @@ class Wc_Muse_Orders {
 					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
 					// Get Muse seat slug from the product
 					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+					// Get Muse seat ID from the product
+					$seat_id = trim( get_post_meta( $wc_meta->value, 'seat_id', true ) );
+					$event_slugs[] = [
+						'slug' => $slug,
+						'seat_slug' => $seat_slug,
+						'series_slug' => $series_slug,
+						'seat_id' => $seat_id,
+						'type' => get_post_meta( $product_parent_id, 'section_type', true )
+					];
 				}
 			}
 		}
 		else {
-			$concert_slug 	= trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
-			$series_slug 	= trim( get_post_meta( $product_parent_id, 'sub_item_slug', true ) );
-			$seat_slug 		= trim( get_post_meta( $product_parent_id, 'seat_slug', true ) );
+			$concert_slug = trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
+			$series_slug = trim( get_post_meta( $product_parent_id, 'sub_item_slug', true ) );
+			$seat_slug = trim( get_post_meta( $product_parent_id, 'seat_slug', true ) );
+			$seat_id = '';
+			$section_type = '';
+			foreach ($order_item->get_meta_data() as $wc_meta) {
+				if ($wc_meta->key == 'seat_reserved_props') {
+					if (isset($wc_meta->value['seat_id'])) {
+						$seat_id = $wc_meta->value['seat_id'];
+					}
+					if (isset($wc_meta->value['section_type'])) {
+						$section_type = $wc_meta->value['section_type'];
+					}
+				}
+			}
 			switch ( $product->get_type() ) {
 
 				// case 'simple':
@@ -428,16 +458,21 @@ class Wc_Muse_Orders {
 					$variation_series_slug = trim( get_post_meta( $product_id, 'sub_item_slug', true ) );
 					$variation_seat_slug = trim( get_post_meta( $product_id, 'seat_slug', true ) );
 
-					$concert_slug 	= !empty($variation_concert_slug) ? $variation_concert_slug : $concert_slug;
-					$series_slug 	= !empty($variation_series_slug) ? $variation_series_slug : $series_slug;
-					$seat_slug 		= !empty($variation_seat_slug) ? $variation_seat_slug : $seat_slug;
-
+					$concert_slug = !empty($variation_concert_slug) ? $variation_concert_slug : $concert_slug;
+					$series_slug = !empty($variation_series_slug) ? $variation_series_slug : $series_slug;
+					$seat_slug = !empty($variation_seat_slug) ? $variation_seat_slug : $seat_slug;
 					break;
 
 			}
 			if ( $concert_slug ) {
 				foreach (array_map('trim', explode( ',', $concert_slug )) as $slug) {
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
+					$event_slugs[] = [
+						'slug' => $slug,
+						'seat_slug' => $seat_slug,
+						'series_slug' => $series_slug,
+						'seat_id' => $seat_id,
+						'section_type' => $section_type
+					];
 				};
 			}
 		}
