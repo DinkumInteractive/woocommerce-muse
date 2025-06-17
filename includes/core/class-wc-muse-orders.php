@@ -355,10 +355,10 @@ class Wc_Muse_Orders {
 					$data = array(
 						'qty' => $order_item->get_quantity(),
 						'price' => $wc_order->get_item_subtotal( $order_item, false, false ),
-						'slug' => $event['slug'],
-						'series' => $event['series_slug'],
-						'seat_slug' => $event['seat_slug'],
-						'type' => get_post_meta( $product_parent_id, 'ticket_type', true )
+						'slug' => $event_slug,
+						'series' => get_post_meta( $product_parent_id, 'sub_item_slug', true ),
+						'type' => get_post_meta( $product_parent_id, 'ticket_type', true ),
+						'seat_slug' => get_post_meta( $product_id, 'seat_slug', true )
 					);
 
 					$order_items[] = $data;
@@ -371,75 +371,10 @@ class Wc_Muse_Orders {
 
 	}
 
-	public function get_event_series($product_parent_id, $product_id) {
-		if ($product_parent_id != $product_id) {
-			$variation_series = get_post_meta( $product_id, 'sub_item_slug', true );
-		}
-		$product_series = get_post_meta( $product_parent_id, 'sub_item_slug', true );
-		return !empty($variation_series) ? $variation_series : $product_series;
-	}
-
-	public function get_event_slugs( $product_parent_id, $product_id, $order_item, $product ) {
-		$product_type = get_post_meta( $product_parent_id, 'ticket_type', true );
-		$event_slugs = [];
-		$concert_slug = '';
-			/* =========== add the validation && $product->get_type() != 'variation' to SUPPORT OLDER SUBSCRIPTIONS IN MARLBORO */
-		// if ( $product_type == 'serie' ) {
-		if ( $product_type == 'serie' && $product->get_type() != 'variation' ) {
-			foreach ($order_item->get_meta_data() as $wc_meta) {
-				if ($wc_meta->key == '_woocommerce_event_id') {
-					// Get Muse Series slug from the season pass product that was added to the cart
-					$series_slug = $this->get_event_series($product_parent_id, $product_id);
-
-					// Get Muse slug from the product
-					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
-					// Get Muse seat slug from the product
-					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
-				}
-			}
-		}
-		elseif( $product_type == 'season-pass' ) {
-			foreach ($order_item->get_meta_data() as $wc_meta) {
-				if ($wc_meta->key == '_woocommerce_event_id') {
-					// Get Muse Series slug from the season pass product that was added to the cart
-					$series_slug = $this->get_event_series($product_parent_id, $product_id);
-
-					// Get Muse slug from the product
-					$slug = trim( get_post_meta( $wc_meta->value, 'item_slug', true ) );
-					// Get Muse seat slug from the product
-					$seat_slug = trim( get_post_meta( $wc_meta->value, 'seat_slug', true ) );
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
-				}
-			}
-		}
-		else {
-			$concert_slug 	= trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
-			$series_slug 	= trim( get_post_meta( $product_parent_id, 'sub_item_slug', true ) );
-			$seat_slug 		= trim( get_post_meta( $product_parent_id, 'seat_slug', true ) );
-			switch ( $product->get_type() ) {
-
-				// case 'simple':
-				// 	break;
-
-				case 'variation':
-				case 'variable':
-					$variation_concert_slug = trim( get_post_meta( $product_id, 'item_slug', true ) );
-					$variation_series_slug = trim( get_post_meta( $product_id, 'sub_item_slug', true ) );
-					$variation_seat_slug = trim( get_post_meta( $product_id, 'seat_slug', true ) );
-
-					$concert_slug 	= !empty($variation_concert_slug) ? $variation_concert_slug : $concert_slug;
-					$series_slug 	= !empty($variation_series_slug) ? $variation_series_slug : $series_slug;
-					$seat_slug 		= !empty($variation_seat_slug) ? $variation_seat_slug : $seat_slug;
-
-					break;
-
-			}
-			if ( $concert_slug ) {
-				foreach (array_map('trim', explode( ',', $concert_slug )) as $slug) {
-					$event_slugs[] = ['slug' => $slug, 'seat_slug' => $seat_slug, 'series_slug' => $series_slug];
-				};
-			}
+	function get_event_slugs( $product_parent_id ) {
+		$event_slugs = trim( get_post_meta( $product_parent_id, 'item_slug', true ) );
+		if ( $event_slugs ){
+			$event_slugs = array_map('trim', explode( ',', $event_slugs ));
 		}
 
 		return apply_filters( 'wc_muse_order_event_slugs', $event_slugs, $product_parent_id, $product_id, $order_item, $product );
