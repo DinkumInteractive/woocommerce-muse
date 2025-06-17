@@ -102,9 +102,20 @@ class Wc_Muse {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-core.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-connector.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-orders.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-muse-cron.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-customers.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-tickets.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-helper.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-payment.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-handler-creditcard.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-mail.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-account-function.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-account-eticket-detail.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-eticket.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/core/class-wc-muse-wp-profile.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-muse-cron.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wc-muse-acf-folder-manager.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-muse-products-hooks.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wc-muse-admin-user-hooks.php';
 
 		$this->loader = new Wc_Muse_Loader();
 
@@ -146,6 +157,7 @@ class Wc_Muse {
 
 		// 	woocommerce product hooks
 		$plugin_admin->define_products_hook();
+		$plugin_admin->define_user_hooks();
 
 		//	WooCommerce Muse
 		// $this->loader->add_filter( 'wc_muse_validate_token', $wc_muse, 'validate_token' );
@@ -153,6 +165,20 @@ class Wc_Muse {
 		// 	Test Page
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_test_menu' );
 
+		//	ACF folder manager
+		$acf_folder_path = WC_MUSE_CUSTOM_FIELDS_DIR;
+		$field_group_ids = array(
+
+			//	PCMS Options – Eticket
+			// 73288,
+
+			//	Muse Order
+			// 73313,
+
+			//	Muse User
+			// 73315,
+		);
+		// $acf_folder_manager = new WC_Muse_ACF_Folder_Manager( $acf_folder_path, $field_group_ids );
 	}
 
 	/**
@@ -166,8 +192,8 @@ class Wc_Muse {
 
 		$plugin_public = new Wc_Muse_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		// Account template function
+		$this->loader->add_filter( 'woocommerce_locate_template', $plugin_public, 'woocommerce_locate_template', 1, 3 );
 
 		// Cron
 		$cron = new Wc_Muse_Cron();
@@ -176,6 +202,17 @@ class Wc_Muse {
 		$this->loader->add_action( 'update_option_wc-muse-enable_cron', $cron, 'on_settings_saved', 99, 2 );
 		$this->loader->add_action( 'update_option_wc-muse-cron_in_minute', $cron, 'on_settings_saved', 10, 2 );
 
+		// Credit Card
+		// $Handler_Credit_Card = new Wc_Muse_Handler_Credit_Card();
+		// $this->loader->add_action( 'wc_braintree_credit_card_api_request_performed', $Handler_Credit_Card, 'maybe_export_cc', 10, 3 );
+		//
+
+		//	Add account pages style.
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'register_scripts' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		//	WC MyAccount custom functions
+		$account_function = new Wc_Muse_Account_Function();
 	}
 
 	/**

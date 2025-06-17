@@ -1,0 +1,1 @@
+jQuery(document).ready((function(n){if(!n("body").hasClass("woocommerce_page_wc-settings"))return!1;const e=function(){const e=n("#wc-muse-environment").val();n(".toggleable-environment").parents("tr").hide(),n(".toggleable-environment.environment-"+e).parents("tr").show()};e(),n("#wc-muse-environment").on("change",(function(){e()}))}));

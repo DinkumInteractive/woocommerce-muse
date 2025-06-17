@@ -63,6 +63,8 @@ class Wc_Muse_Products_Hook {
 			$variant_id = $variation['id'];
 
 			update_post_meta( $variant_id, 'seat_slug', $variation['seat_slug'] );
+			update_post_meta( $variant_id, 'sub_item_slug', $variation['sub_item_slug'] );
+			update_post_meta( $variant_id, 'item_slug', $variation['item_slug'] );
 
 		}
 
@@ -96,6 +98,7 @@ class Wc_Muse_Products_Hook {
 		update_post_meta( $post_id, 'ticket_type', sanitize_text_field( $_POST['ticket_type'] ) );
 		update_post_meta( $post_id, 'sub_item_slug', sanitize_text_field( $_POST['sub_item_slug'] ) );
 		update_post_meta( $post_id, 'seat_slug', sanitize_text_field( $_POST['seat_slug'] ) );
+		update_post_meta( $post_id, 'eticket_visibility_date', sanitize_text_field( $_POST['eticket_visibility_date'] ) );
 
 		//	Reattach hook
 		add_action( 'save_post_product', array( $this, 'save_post_meta' ), 0, 3 );
