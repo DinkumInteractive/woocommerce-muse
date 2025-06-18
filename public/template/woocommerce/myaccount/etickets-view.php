@@ -9,15 +9,18 @@ $wc_muse_customer_manager = Wc_Muse_Customers::get_instance();
 $wc_muse_order_manager    = Wc_Muse_Orders::get_instance();
 
 // Helper.
-$ticket_id      = sanitize_text_field( $_GET['id'] );
-$ticket_details = $wc_muse_customer_manager->get_ticket_details( get_current_user_id(), $ticket_id );
+$ticket_id         = sanitize_text_field( $_GET['id'] );
+$ticket_details    = $wc_muse_customer_manager->get_ticket_details( get_current_user_id(), $ticket_id );
+$related_tickets   = false;
+$ticket_detail_url = wc_get_account_endpoint_url( 'etickets' );
 
 if ( $ticket_details ) :
 
 
 	// Vars.
 	$order            = $wc_muse_order_manager->get_order_by_muse_order_id( $ticket_details->order_id );
-	$wc_product       = wc_get_product( $ticket_details->web_id );
+	$event_id         = $ticket_details->web_id;
+	$wc_product       = wc_get_product( $event_id );
 	$header_logo      = WC_MUSE_PUBLIC_IMG_URI . '/logo-alt.jpg';
 	$event_name       = $ticket_details->print_event_name;
 	$event_thumbnails = $wc_product->get_gallery_image_ids();
@@ -33,11 +36,23 @@ if ( $ticket_details ) :
 	$order_link       = ( $order ? $order->get_view_order_url() : null );
 	$close_link       = wc_get_account_endpoint_url( 'etickets' );
 	$print_link       = sprintf( '%s?action=%s&id=%s', wc_get_account_endpoint_url( 'etickets' ), 'print', $ticket_details->id );
+	$_related_tickets = $wc_muse_customer_manager->get_upcoming_tickets( get_current_user_id() );
+
+	// Get related tickets by event ID.
+	if ( $_related_tickets ) {
+
+		foreach ( $_related_tickets as $_related_ticket ) {
+
+			if ( $event_id === $_related_ticket->web_id ) {
+
+				$related_tickets[] = $_related_ticket;
+			}
+		}
+	}
 
 	/*
 	  Debug.
 	 *
-	 */
 	do_action(
 		'browser_debug',
 		'etickets-view.php',
@@ -45,6 +60,7 @@ if ( $ticket_details ) :
 			'$ticket_details' => $ticket_details,
 		)
 	);
+	 */
 
 	$eticket_details = Wc_Muse_Account_Eticket_Detail::get_instance();
 	$eticket_details->set_data( $ticket_details->get_data() );
@@ -127,6 +143,44 @@ if ( $ticket_details ) :
 					</div>
 				</div>
 
+				<?php if ( $related_tickets ) : ?>
+
+					<h3 class="ticPrint-title">Related Tickets</h3>
+
+					<div class="row">
+					<?php foreach ( $related_tickets as $related_ticket ) : ?>
+
+						<?php if ( $ticket_id === $related_ticket->id ) : ?>
+							<?php continue; ?>
+						<?php endif; ?>
+
+						<?php $print_event_name = $related_ticket->print_event_name; ?>
+						<?php $print_venue_name = $related_ticket->print_venue_name; ?>
+						<?php $section_name = $related_ticket->section_name; ?>
+						<?php $row = $related_ticket->row; ?>
+						<?php $seat = $related_ticket->seat; ?>
+						<?php $detail_link = sprintf( '%s?action=%s&id=%s', $page_url_eticket, 'view', $related_ticket->id ); ?>
+
+							<div class="col-md-6">
+								<div class="ticboxz">
+									<div class="row">
+										<div class="col-lg-8 ticboxz_content">
+											<span class="ticobxz__name"><?php echo $print_event_name; ?></span>
+											<span><?php echo $print_venue_name; ?></span>
+											<span class="ticobxz__seat"><?php echo sprintf( 'Seat number : %s %s %s ', $section_name ? $section_name : '-', $row ? ', Row ' . $row : '', $seat ? ', Seat ' . $seat : '' ); ?></span>
+										</div>
+										<div class="col-lg-4 ticboxz__act">
+											<div class="ticScreen__qr">
+												<img alt="qrcode" src="<?php echo $related_ticket->qr_image_url; ?>" onerror="this.style.display='none';">
+											</div>
+										</div>
+									</div>
+								</div> <!-- /ticboxz -->
+							</div>
+					<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+
 				<?php $eticket_details->get_template(); ?>
 			<?php endif; ?>
 		</div>
@@ -186,6 +240,44 @@ if ( $ticket_details ) :
 					<a class="vticbtn vticbtn--blue" href="<?php echo $order_link; ?>">see receipt</a>
 				<?php endif; ?>
 				<a class="vticbtn vticbtn--red" href="<?php echo $close_link; ?>">close</a>
+
+				<?php if ( $related_tickets ) : ?>
+
+					<h3 class="ticPrint-title">Related Tickets</h3>
+
+					<div class="row">
+					<?php foreach ( $related_tickets as $related_ticket ) : ?>
+
+						<?php if ( $ticket_id === $related_ticket->id ) : ?>
+							<?php continue; ?>
+						<?php endif; ?>
+
+						<?php $print_event_name = $related_ticket->print_event_name; ?>
+						<?php $print_venue_name = $related_ticket->print_venue_name; ?>
+						<?php $section_name = $related_ticket->section_name; ?>
+						<?php $row = $related_ticket->row; ?>
+						<?php $seat = $related_ticket->seat; ?>
+						<?php $detail_link = sprintf( '%s?action=%s&id=%s', $page_url_eticket, 'view', $related_ticket->id ); ?>
+
+							<div class="col-md-6">
+								<div class="ticboxz">
+									<div class="row">
+										<div class="col-lg-8 ticboxz_content">
+											<span class="ticobxz__name"><?php echo $print_event_name; ?></span>
+											<span><?php echo $print_venue_name; ?></span>
+											<span class="ticobxz__seat"><?php echo sprintf( 'Seat number : %s %s %s ', $section_name ? $section_name : '-', $row ? ', Row ' . $row : '', $seat ? ', Seat ' . $seat : '' ); ?></span>
+										</div>
+										<div class="col-lg-4 ticboxz__act">
+											<div class="ticScreen__qr">
+												<img alt="qrcode" src="<?php echo $related_ticket->qr_image_url; ?>" onerror="this.style.display='none';">
+											</div>
+										</div>
+									</div>
+								</div> <!-- /ticboxz -->
+							</div>
+					<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 		</div><!-- Vticket -->
 	</div>
