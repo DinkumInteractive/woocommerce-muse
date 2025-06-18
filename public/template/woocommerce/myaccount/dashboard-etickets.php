@@ -41,30 +41,57 @@ do_action( 'browser_debug', 'Upcoming Sorted Ticket', $sorted_tickets );
 
 			<?php foreach ( $sorted_tickets as $date => $tickets ): ?>
 				<?php $date = Wc_Muse_Account_Function::get_formatted_date( $date ); ?>
+				<?php $_grouped_tickets = array(); ?>
+				<?php $grouped_tickets = array(); ?>
 
 				<span class="ticboxz__date"><?php echo $date; ?></span>
 
-				<?php foreach ( $tickets as $ticket ): ?>
-					<?php $print_event_name = $ticket->print_event_name; ?>
-					<?php $print_venue_name = $ticket->print_venue_name; ?>
-					<?php $section_name = $ticket->section_name; ?>
-					<?php $row = $ticket->row; ?>
-					<?php $seat = $ticket->seat; ?>
-					<?php $detail_link = sprintf( '%s?action=%s&id=%s', $page_url_eticket, 'view', $ticket->id ); ?>
+				<?php
+				if ( $tickets ) {
 
-					<div class="ticboxz">
-						<div class="row">
-							<div class="col-lg-8 ticboxz_content">
-								<span class="ticobxz__name"><?php echo $print_event_name ?></span>
-								<span><?php echo $print_venue_name ?></span>
-								<span class="ticobxz__seat"><?php echo sprintf( 'Seat number : %s, Row %s, Seat %s ', $section_name, $row, $seat ) ?></span>
+					foreach ( $tickets as $ticket ) {
+
+						$_grouped_tickets[ $ticket->web_id ][] = array(
+							'event_name' => $ticket->print_event_name,
+							'venue_name' => $ticket->print_venue_name,
+							'ticket_url' => sprintf( '%s?action=%s&id=%s', $page_url_eticket, 'view', $ticket->id ),
+						);
+					}
+
+					if ( $_grouped_tickets ) {
+
+						foreach ( $_grouped_tickets as $event_id => $_grouped_ticket ) {
+
+							$grouped_tickets[ $event_id ] = array(
+								'event_name' => $_grouped_ticket[0]['event_name'],
+								'venue_name' => $_grouped_ticket[0]['venue_name'],
+								'ticket_url' => $_grouped_ticket[0]['ticket_url'],
+								'ticket_qty' => count( $_grouped_ticket ),
+							);
+						}
+					}
+				}
+				?>
+
+				<?php if ( $grouped_tickets ) : ?>
+
+					<?php foreach ( $grouped_tickets as $event_id => $grouped_ticket ) : ?>
+
+						<div class="ticboxz">
+							<div class="row">
+								<div class="col-lg-8 ticboxz_content">
+									<span class="ticobxz__name"><?php echo $grouped_ticket['event_name']; ?></span>
+									<span><?php echo $grouped_ticket['event_name']; ?></span>
+									<span class="ticobxz__seat"><?php echo $grouped_ticket['ticket_qty'] ? $grouped_ticket['ticket_qty'] . ' Tickets' : ''; ?></span>
+								</div>
+								<div class="col-lg-4 ticboxz__act">
+									<a href="<?php echo $grouped_ticket['ticket_url']; ?>">Detail</a>		
+								</div>
 							</div>
-							<div class="col-lg-4 ticboxz__act">
-								<a href="<?php echo $detail_link ?>">Detail</a>		
-							</div>
-						</div>
-					</div> <!-- /ticboxz -->
-				<?php endforeach; ?>
+						</div> <!-- /ticboxz -->
+					<?php endforeach; ?>
+				<?php endif; ?>
+
 				<div class="space15"></div>
 			<?php endforeach; ?>
 

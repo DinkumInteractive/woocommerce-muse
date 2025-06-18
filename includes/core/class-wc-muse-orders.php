@@ -106,9 +106,11 @@ class Wc_Muse_Orders {
      */
 	public function convert_wc_order( $wc_order ){
 
+		$customer_note = apply_filters( 'wc_muse_order_customer_note', $this->get_order_notes( $wc_order ), $wc_order );
+
 		$order = array(
 
-			'notes' => $this->get_order_notes( $wc_order ),
+			'notes' => !empty( $customer_note ) ? sprintf( 'Customer note in the website: %s', $customer_note ) : 'Empty customer note in the website ',
 
 			'admin_email' => $this->connector->admin_email,
 
@@ -359,7 +361,8 @@ class Wc_Muse_Orders {
 						'series' => $event['series_slug'],
 						'seat_slug' => $event['seat_slug'],
 						'seat_id' => $event['seat_id'],
-						'section_type' => $event['section_type']
+						'section_type' => $event['section_type'],
+						'type' => get_post_meta( $product_parent_id, 'ticket_type', true )
 					);
 
 					$order_items[] = $data;
@@ -557,7 +560,7 @@ class Wc_Muse_Orders {
 
 		$response = false;
 
-		$organization_id = $this->connector->organization_id;
+			$organization_id = $this->connector->organization_id;
 
 		$order_data = $this->convert_wc_order( $wc_order );
 
